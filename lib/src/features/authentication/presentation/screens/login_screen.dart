@@ -6,7 +6,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../controllers/auth_controller.dart';
 import '../../../../constants/app_theme.dart';
 import '../../../../utils/snackbar_utils.dart';
-import '../../../../constants/firebase_paths.dart'; // Future-ready
+
 import '../../../../common_widgets/global_premium_widgets.dart';
 import '../../../../exceptions/app_exception.dart'; // Clean Architecture Error Handler
 
@@ -37,8 +37,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     } catch (e) {
       if (!mounted) return;
       
-      // Elite World-Class exception interception
-      final mappedException = AppException.fromFirebase(e);
+      final mappedException = AppException.fromDio(e);
       SnackBarUtils.showError(context, mappedException.message);
     }
   }
@@ -88,7 +87,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     labelText: 'Email',
                     prefixIcon: Icon(Icons.email_outlined),
                   ),
-                  validator: (value) => value == null || value.isEmpty ? 'Please enter email' : null,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) return 'Please enter email';
+                    final emailRegex = RegExp(r'^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$');
+                    if (!emailRegex.hasMatch(value)) return 'Please enter a valid email';
+                    return null;
+                  },
                   enabled: !isLoading,
                 ).animate().fade(duration: 500.ms, delay: 400.ms).slideY(begin: 0.1),
 

@@ -21,7 +21,7 @@ _$JoinEventModelImpl _$$JoinEventModelImplFromJson(Map<String, dynamic> json) =>
       status: json['status'] as String? ?? '',
       type: json['type'] as String? ?? '',
       title: json['title'] as String? ?? '',
-      createdAt: const TimestampConverter().fromJson(json['createdAt']),
+      createdAt: const DateTimeConverter().fromJson(json['createdAt']),
     );
 
 Map<String, dynamic> _$$JoinEventModelImplToJson(
@@ -40,5 +40,5 @@ Map<String, dynamic> _$$JoinEventModelImplToJson(
   'status': instance.status,
   'type': instance.type,
   'title': instance.title,
-  'createdAt': const TimestampConverter().toJson(instance.createdAt),
+  'createdAt': const DateTimeConverter().toJson(instance.createdAt),
 };

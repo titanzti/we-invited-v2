@@ -1,6 +1,5 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
-import '../../../utils/timestamp_converter.dart';
+import '../../../utils/datetime_converter.dart';
 
 part 'post_model.freezed.dart';
 part 'post_model.g.dart';
@@ -12,10 +11,10 @@ class PostModel with _$PostModel {
     required String uid,
     @Default('') String name,
     @Default('') String place,
-    @TimestampConverter() Timestamp? startdateTime,
-    @TimestampConverter() Timestamp? entdateTime,
-    @TimestampConverter() Timestamp? createdAt,
-    @TimestampConverter() Timestamp? updatedAt,
+    @DateTimeConverter() DateTime? startdateTime,
+    @DateTimeConverter() DateTime? entdateTime,
+    @DateTimeConverter() DateTime? createdAt,
+    @DateTimeConverter() DateTime? updatedAt,
     @Default('') String image,
     @Default('') String emailuser,
     @Default('') String address,
@@ -24,8 +23,11 @@ class PostModel with _$PostModel {
     @Default('') String gender,
     @Default('') String postbyname,
     @Default('') String postbyimage,
-    @JsonKey(name: 'Numpeople') @Default('') String numpeople,
+    @Default('') String numpeople,
     @Default('') String agerange,
+    @Default(false) bool requiresApproval,
+    double? latitude,
+    double? longitude,
   }) = _PostModel;
 
   factory PostModel.fromJson(Map<String, dynamic> json) => _$PostModelFromJson(json);

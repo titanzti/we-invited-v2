@@ -39,7 +39,7 @@ class MainScaffold extends StatelessWidget {
                 settings: LiquidGlassSettings(
                   thickness: 24, // Extreme warping
                   blur: 25, // High frost
-                  glassColor: AppTheme.surfaceWhite.withOpacity(0.15), // Highly transparent so we see the glass effect!
+                  glassColor: AppTheme.surfaceWhite.withValues(alpha: 0.15), // Highly transparent so we see the glass effect!
                   lightIntensity: 2.0, // High gloss
                   ambientStrength: 1.0,
                   refractiveIndex: 1.6, // Strong refraction
@@ -138,7 +138,7 @@ class _NavBarItem extends StatelessWidget {
       );
     }
 
-    final color = isSelected ? AppTheme.primaryBlue : AppTheme.textMetadata.withOpacity(0.7);
+    final color = isSelected ? AppTheme.primaryBlue : AppTheme.textMetadata.withValues(alpha: 0.7);
 
     return GestureDetector(
       onTap: onTap,
@@ -158,7 +158,7 @@ class _NavBarItem extends StatelessWidget {
                 shape: LiquidRoundedSuperellipse(borderRadius: 24),
                 settings: LiquidGlassSettings(
                   blur: 20,
-                  glassColor: AppTheme.primaryBlue.withOpacity(0.4), // Very obvious blue tint
+                  glassColor: AppTheme.primaryBlue.withValues(alpha: 0.4), // Very obvious blue tint
                   saturation: 2.5, // Extreme vibrancy Apple effect
                 ),
                 child: const SizedBox.expand(),

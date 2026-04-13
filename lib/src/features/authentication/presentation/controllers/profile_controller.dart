@@ -1,8 +1,8 @@
 import 'dart:io';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import '../models/user_model.dart';
-import '../repositories/user_repository.dart';
-import 'auth_controller.dart';
+import '../../domain/user_model.dart';
+import '../../data/user_repository.dart';
+import '../../data/auth_repository.dart';
 
 part 'profile_controller.g.dart';
 
@@ -11,8 +11,8 @@ class ProfileController extends _$ProfileController {
   @override
   FutureOr<UserModel?> build() async {
     // Watch current auth user
-    final authUser = ref.watch(authControllerProvider).value;
-    final email = authUser?.email;
+    final authState = ref.watch(authStateProvider);
+    final email = authState.value?.email;
 
     if (email == null || email.isEmpty) {
       return null;

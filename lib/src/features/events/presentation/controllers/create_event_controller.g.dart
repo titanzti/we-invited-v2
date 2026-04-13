@@ -1,26 +1,27 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'profile_controller.dart';
+part of 'create_event_controller.dart';
 
 // **************************************************************************
 // RiverpodGenerator
 // **************************************************************************
 
-String _$profileControllerHash() => r'c7ae3037f0c9c4bf4a43a6a4c98a32df54e2db78';
+String _$createEventControllerHash() =>
+    r'924192ae22fb998e73c115bf80a558db727f0162';
 
-/// See also [ProfileController].
-@ProviderFor(ProfileController)
-final profileControllerProvider =
-    AsyncNotifierProvider<ProfileController, UserModel?>.internal(
-      ProfileController.new,
-      name: r'profileControllerProvider',
+/// See also [CreateEventController].
+@ProviderFor(CreateEventController)
+final createEventControllerProvider =
+    AutoDisposeAsyncNotifierProvider<CreateEventController, void>.internal(
+      CreateEventController.new,
+      name: r'createEventControllerProvider',
       debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
           ? null
-          : _$profileControllerHash,
+          : _$createEventControllerHash,
       dependencies: null,
       allTransitiveDependencies: null,
     );
 
-typedef _$ProfileController = AsyncNotifier<UserModel?>;
+typedef _$CreateEventController = AutoDisposeAsyncNotifier<void>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

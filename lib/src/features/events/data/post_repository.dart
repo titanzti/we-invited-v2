@@ -1,10 +1,6 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../utils/api_client.dart';
-
 import '../domain/post_model.dart';
-import '../domain/join_event_model.dart';
 
 part 'post_repository.g.dart';
 
@@ -16,39 +12,104 @@ PostRepository postRepository(PostRepositoryRef ref) {
 class PostRepository {
   PostRepository();
 
-  // Fetch Events from real backend API via Dio Future
-  Future<List<PostModel>> getPosts() async {
+  Future<List<PostModel>> getPosts({String? category}) async {
     try {
-      final response = await ApiClient.instance.get('/events');
+      final queryParams = <String, dynamic>{};
+      if (category != null && category.isNotEmpty) {
+        queryParams['category'] = category;
+      }
+      final response = await ApiClient.instance.get(
+        '/events',
+        queryParameters: queryParams,
+      );
       final data = response.data['data'] as List;
       return data.map((json) => PostModel.fromJson(json)).toList();
     } catch (e) {
-      throw Exception('Failed to load events from backend: $e');
+      throw Exception('Failed to load events: $e');
     }
   }
 
-  // Retrieve user specific joined events
-  Stream<List<JoinEventModel>> getJoinedEventsStream(String uid) {
-    return const Stream.empty();
+  Future<List<PostModel>> searchEvents(String query) async {
+    try {
+      final response = await ApiClient.instance.get(
+        '/events',
+        queryParameters: {'q': query},
+      );
+      final data = response.data['data'] as List;
+      return data.map((json) => PostModel.fromJson(json)).toList();
+    } catch (e) {
+      throw Exception('Failed to search events: $e');
+    }
   }
 
-  // Create a new post
-  Future<void> createPost(String title, String location, String category, {String? imageUrl}) async {
+  Future<void> createPost({
+    required String title,
+    required String location,
+    required String category,
+    String? description,
+    String? imageUrl,
+    DateTime? startDateTime,
+    DateTime? endDateTime,
+    int? maxCapacity,
+    bool requiresApproval = false,
+    double? latitude,
+    double? longitude,
+  }) async {
     try {
       await ApiClient.instance.post('/events', data: {
         'title': title,
         'location': location,
         'category': category,
+        if (description != null && description.isNotEmpty) 'description': description,
         if (imageUrl != null && imageUrl.isNotEmpty) 'imageUrl': imageUrl,
+        if (startDateTime != null) 'startdateTime': startDateTime.toIso8601String(),
+        if (endDateTime != null) 'entdateTime': endDateTime.toIso8601String(),
+        if (maxCapacity != null) 'numpeople': maxCapacity.toString(),
+        'requiresApproval': requiresApproval,
+        if (latitude != null) 'latitude': latitude,
+        if (longitude != null) 'longitude': longitude,
       });
     } catch (e) {
       throw Exception('Failed to create event: $e');
     }
   }
 
-  // Update a post
-  Future<void> updatePost(PostModel post) async {}
+  Future<Map<String, dynamic>> joinEvent(String eventId) async {
+    try {
+      final response = await ApiClient.instance.post('/events/$eventId/join');
+      return response.data as Map<String, dynamic>;
+    } catch (e) {
+      throw Exception('Failed to join event: $e');
+    }
+  }
 
-  // Request to join an event
-  Future<void> requestToJoin(JoinEventModel joinRequest) async {}
+  Future<List<PostModel>> getMyEvents() async {
+    try {
+      final response = await ApiClient.instance.get('/events/me');
+      final data = response.data['data'] as List;
+      return data.map((json) => PostModel.fromJson(json)).toList();
+    } catch (e) {
+      return [];
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> getJoinRequests(String eventId) async {
+    try {
+      final response = await ApiClient.instance.get('/events/$eventId/requests');
+      return (response.data['data'] as List).cast<Map<String, dynamic>>();
+    } catch (e) {
+      throw Exception('Failed to load requests: $e');
+    }
+  }
+
+  Future<void> respondToJoinRequest(String eventId, String joinId, String action) async {
+    try {
+      await ApiClient.instance.patch(
+        '/events/$eventId/requests/$joinId',
+        data: {'action': action},
+      );
+    } catch (e) {
+      throw Exception('Failed to $action request: $e');
+    }
+  }
 }

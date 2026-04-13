@@ -1,6 +1,5 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
-import '../../../utils/timestamp_converter.dart';
+import '../../../utils/datetime_converter.dart';
 
 part 'join_event_model.freezed.dart';
 part 'join_event_model.g.dart';
@@ -21,7 +20,7 @@ class JoinEventModel with _$JoinEventModel {
     @Default('') String status,
     @Default('') String type,
     @Default('') String title,
-    @TimestampConverter() Timestamp? createdAt,
+    @DateTimeConverter() DateTime? createdAt,
   }) = _JoinEventModel;
 
   factory JoinEventModel.fromJson(Map<String, dynamic> json) => _$JoinEventModelFromJson(json);

@@ -35,27 +35,27 @@ class _AnimatedPrimaryButtonState extends State<AnimatedPrimaryButton> {
       },
       onTapCancel: () => setState(() => _isPressed = false),
       child: AnimatedScale(
-        scale: _isPressed ? 0.95 : 1.0,
+        scale: _isPressed ? 0.90 : 1.0, // Notion uses scale 0.9 for active state
         duration: const Duration(milliseconds: 150),
         curve: Curves.easeOutQuart,
         child: Container(
-          height: 56,
+          height: 48, // Notion uses slightly more compact button heights
           width: double.infinity,
           decoration: BoxDecoration(
             color: widget.isLoading ? AppTheme.primaryBlue.withOpacity(0.7) : AppTheme.primaryBlue,
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: _isPressed ? [] : PremiumShadows.softCard,
+            borderRadius: BorderRadius.circular(4), // Notion 4px micro radius
+            border: Border.all(color: Colors.transparent, width: 1), // 1px transparent border per spec
           ),
           alignment: Alignment.center,
           child: widget.isLoading
               ? const SizedBox(
-                  height: 24,
-                  width: 24,
+                  height: 20,
+                  width: 20,
                   child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
                 ).animate().fade()
               : Text(
-                  widget.text,
-                  style: Theme.of(context).textTheme.labelLarge,
+                  widget.text, // No longer forced uppercase
+                  style: Theme.of(context).textTheme.labelLarge, // White color provided by theme
                 ),
         ),
       ),

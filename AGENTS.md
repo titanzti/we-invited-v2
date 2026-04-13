@@ -48,3 +48,4 @@ lib/
 2. **Code generation**: Must run `fvm dart run build_runner build` after creating/modifying models with `@freezed`, `@jsonSerializable`, or `@riverpod`
 3. **Custom lints**: Enabled via `riverpod_lint` in analysis_options.yaml
 4. **Flutter version**: Managed via FVM (`.fvmrc`)
+5. **Code Validation**: Every time you modify a file, you MUST immediately analyze it by running `fvm flutter analyze <file_path>` to ensure there are no errors.

@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import '../../../utils/api_client.dart';
 
 import '../domain/post_model.dart';
 import '../domain/join_event_model.dart';
@@ -15,35 +16,15 @@ PostRepository postRepository(PostRepositoryRef ref) {
 class PostRepository {
   PostRepository();
 
-  // Retrieve bounded generic Posts (Max 30) to prevent OOM / quota bleeding
-  Stream<List<PostModel>> getPostsStream() {
-    // Returning Mock Data since Firebase is not initialized
-    return Stream.value([
-      PostModel(
-        postid: '1',
-        uid: 'user1',
-        name: 'Tech Meetup 2026',
-        place: 'Bangkok, Thailand',
-        category: 'Technology',
-        image: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&q=80',
-      ),
-      PostModel(
-        postid: '2',
-        uid: 'user2',
-        name: 'Music Festival',
-        place: 'Chiang Mai',
-        category: 'Entertainment',
-        image: 'https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=800&q=80',
-      ),
-      PostModel(
-        postid: '3',
-        uid: 'user3',
-        name: 'Startup Pitch Deck',
-        place: 'Phuket, Thailand',
-        category: 'Business',
-        image: 'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=800&q=80',
-      ),
-    ]);
+  // Fetch Events from real backend API via Dio Future
+  Future<List<PostModel>> getPosts() async {
+    try {
+      final response = await ApiClient.instance.get('/events');
+      final data = response.data['data'] as List;
+      return data.map((json) => PostModel.fromJson(json)).toList();
+    } catch (e) {
+      throw Exception('Failed to load events from backend: $e');
+    }
   }
 
   // Retrieve user specific joined events
@@ -52,7 +33,18 @@ class PostRepository {
   }
 
   // Create a new post
-  Future<void> createPost(PostModel post) async {}
+  Future<void> createPost(String title, String location, String category, {String? imageUrl}) async {
+    try {
+      await ApiClient.instance.post('/events', data: {
+        'title': title,
+        'location': location,
+        'category': category,
+        if (imageUrl != null && imageUrl.isNotEmpty) 'imageUrl': imageUrl,
+      });
+    } catch (e) {
+      throw Exception('Failed to create event: $e');
+    }
+  }
 
   // Update a post
   Future<void> updatePost(PostModel post) async {}

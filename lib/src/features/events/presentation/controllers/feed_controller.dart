@@ -7,8 +7,8 @@ part 'feed_controller.g.dart';
 @riverpod
 class FeedController extends _$FeedController {
   @override
-  Stream<List<PostModel>> build() {
-    return ref.watch(postRepositoryProvider).getPostsStream();
+  Future<List<PostModel>> build() async {
+    return ref.watch(postRepositoryProvider).getPosts();
   }
 
   Future<void> createPost(PostModel post) async {

@@ -9,15 +9,13 @@ import 'src/utils/api_client.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Initialize Dio API Default Configs
   ApiClient.initialize();
   // Firebase uses self-hosted backend API (and feed is mocked), no need to initialize Firebase here.
   runApp(
     // ProviderScope is required to use Riverpod
-    const ProviderScope(
-      child: MyApp(),
-    ),
+    const ProviderScope(child: MyApp()),
   );
 }
 

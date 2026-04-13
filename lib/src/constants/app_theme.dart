@@ -4,26 +4,29 @@ import 'package:google_fonts/google_fonts.dart';
 class AppTheme {
   AppTheme._();
 
-  // Premium Color Palette
-  static const Color primaryBlue = Color(0xFF2563EB); // Vibrant modern blue
-  static const Color primaryDark = Color(0xFF0F172A); // Slate 900
-  static const Color secondaryTeal = Color(0xFF0D9488);
-  static const Color backgroundLight = Color(0xFFF8FAFC); // Slate 50
-  static const Color surfaceWhite = Color(0xFFFFFFFF);
-  static const Color textBody = Color(0xFF334155); // Slate 700
-  static const Color borderLight = Color(0xFFE2E8F0); // Slate 200
-  static const Color error = Color(0xFFEF4444); // Red 500
+  // Notion Color Palette
+  static const Color primaryBlue = Color(0xFF0075DE); // Notion Blue (CTA)
+  static const Color primaryDark = Color(0xF2000000); // rgba(0,0,0,0.95)
+  static const Color secondaryTeal = Color(0xFF2A9D99); // Semantic Teal
+  static const Color backgroundLight = Color(0xFFF6F5F4); // Warm White
+  static const Color surfaceWhite = Color(0xFFFFFFFF); // Pure White
+  static const Color textBody = Color(0xF2000000); // rgba(0,0,0,0.95)
+  static const Color textMetadata = Color(0xFF615D59); // Warm Gray 500
+  static const Color borderLight = Color(0x19000000); // rgba(0,0,0,0.1) 'Whisper'
+  static const Color error = Color(0xFFDD5B00); // Orange/Red warning
 
-  // Modern Typography applying 'Prompt' for Thai & English support
+  // Notion Typography (Inter with specific tracking)
   static TextTheme get _premiumTextTheme {
-    return GoogleFonts.promptTextTheme().copyWith(
-      displayLarge: GoogleFonts.prompt(fontWeight: FontWeight.w700, color: primaryDark, letterSpacing: -1),
-      displayMedium: GoogleFonts.prompt(fontWeight: FontWeight.w700, color: primaryDark, letterSpacing: -0.5),
-      headlineLarge: GoogleFonts.prompt(fontWeight: FontWeight.w600, color: primaryDark),
-      titleLarge: GoogleFonts.prompt(fontWeight: FontWeight.w600, color: primaryDark),
-      bodyLarge: GoogleFonts.prompt(fontWeight: FontWeight.w400, color: textBody, fontSize: 16),
-      bodyMedium: GoogleFonts.prompt(fontWeight: FontWeight.w400, color: textBody, fontSize: 14),
-      labelLarge: GoogleFonts.prompt(fontWeight: FontWeight.w600, color: surfaceWhite, letterSpacing: 0.5),
+    return GoogleFonts.interTextTheme().copyWith(
+      displayLarge: GoogleFonts.inter(fontWeight: FontWeight.w700, color: primaryDark, fontSize: 64, height: 1.0, letterSpacing: -2.125),
+      displayMedium: GoogleFonts.inter(fontWeight: FontWeight.w700, color: primaryDark, fontSize: 54, height: 1.04, letterSpacing: -1.875),
+      headlineLarge: GoogleFonts.inter(fontWeight: FontWeight.w700, color: primaryDark, fontSize: 40, height: 1.5, letterSpacing: 0),
+      titleLarge: GoogleFonts.inter(fontWeight: FontWeight.w700, color: primaryDark, fontSize: 26, height: 1.23, letterSpacing: -0.625),
+      titleMedium: GoogleFonts.inter(fontWeight: FontWeight.w700, color: primaryDark, fontSize: 22, height: 1.27, letterSpacing: -0.25),
+      bodyLarge: GoogleFonts.inter(fontWeight: FontWeight.w400, color: textBody, fontSize: 16, height: 1.5, letterSpacing: 0),
+      bodyMedium: GoogleFonts.inter(fontWeight: FontWeight.w500, color: textBody, fontSize: 16, height: 1.5, letterSpacing: 0),
+      labelLarge: GoogleFonts.inter(fontWeight: FontWeight.w600, color: surfaceWhite, fontSize: 15, height: 1.33, letterSpacing: 0),
+      labelSmall: GoogleFonts.inter(fontWeight: FontWeight.w600, color: primaryBlue, fontSize: 12, height: 1.33, letterSpacing: 0.125),
     );
   }
 
@@ -33,78 +36,87 @@ class AppTheme {
         primary: primaryBlue,
         secondary: secondaryTeal,
         surface: surfaceWhite,
-        error: Color(0xFFEF4444), // Red 500
+        error: error,
         onPrimary: surfaceWhite,
       ),
       scaffoldBackgroundColor: backgroundLight,
       textTheme: _premiumTextTheme,
       useMaterial3: true,
       
-      // Modern AppBar
       appBarTheme: const AppBarTheme(
         centerTitle: true,
         elevation: 0,
-        backgroundColor: surfaceWhite,
+        backgroundColor: backgroundLight,
         foregroundColor: primaryDark,
-        surfaceTintColor: Colors.transparent, // Remove Material 3 tint
+        surfaceTintColor: Colors.transparent,
       ),
       
-      // Modern Elevated Button (Pill shaped, vibrant, scaled)
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           elevation: 0,
           backgroundColor: primaryBlue,
           foregroundColor: surfaceWhite,
           minimumSize: const Size(double.infinity, 56),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(4),
           ),
-          textStyle: GoogleFonts.prompt(fontWeight: FontWeight.w600, fontSize: 16),
+          textStyle: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 15, height: 1.33),
         ).copyWith(
           overlayColor: WidgetStateProperty.resolveWith((states) {
             if (states.contains(WidgetState.pressed)) {
-              return Colors.white.withOpacity(0.1);
+              return const Color(0xFF005BAB); // Active Blue
             }
             return null;
           }),
         ),
       ),
       
-      // Modern Input Fields
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: surfaceWhite,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        contentPadding: const EdgeInsets.all(12),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: borderLight),
+          borderRadius: BorderRadius.circular(4),
+          borderSide: const BorderSide(color: Color(0xFFDDDDDD), width: 1),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: borderLight),
+          borderRadius: BorderRadius.circular(4),
+          borderSide: const BorderSide(color: Color(0xFFDDDDDD), width: 1),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: primaryBlue, width: 2),
+          borderRadius: BorderRadius.circular(4),
+          borderSide: const BorderSide(color: Color(0xFF097FE8), width: 2), // Focus blue
         ),
-        hintStyle: TextStyle(color: textBody.withOpacity(0.5)),
+        hintStyle: GoogleFonts.inter(color: const Color(0xFFA39E98)), // Warm gray 300
       ),
     );
   }
 }
 
-// Global Box Shadows for Premium Glass/Depth feel
+// Flat Design strictly outlaws visual drop shadows
 class PremiumShadows {
+  // Notion's Ambient 4-layer soft stack
   static List<BoxShadow> get softCard => [
-    BoxShadow(
-      color: Colors.black.withOpacity(0.04),
-      blurRadius: 24,
-      offset: const Offset(0, 8),
+    const BoxShadow(
+      color: Color(0x0A000000), // 0.04
+      blurRadius: 18,
+      offset: Offset(0, 4),
     ),
-    BoxShadow(
-      color: Colors.black.withOpacity(0.02),
-      blurRadius: 8,
-      offset: const Offset(0, 4),
+    const BoxShadow(
+      color: Color(0x07000000), // 0.027
+      blurRadius: 7.85,
+      offset: Offset(0, 2),
+    ),
+    const BoxShadow(
+      color: Color(0x05000000), // 0.02
+      blurRadius: 2.93,
+      offset: Offset(0, 0.8),
+    ),
+    const BoxShadow(
+      color: Color(0x03000000), // 0.01
+      blurRadius: 1.04,
+      offset: Offset(0, 0.175),
     ),
   ];
 }

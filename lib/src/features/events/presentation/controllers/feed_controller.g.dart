@@ -6,12 +6,12 @@ part of 'feed_controller.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$feedControllerHash() => r'66df9b36698bb7febcdf6cd3b7855e45dd6bfda5';
+String _$feedControllerHash() => r'dc73e57da65857aaf3d437e6bae5ca9e9b3b7c56';
 
 /// See also [FeedController].
 @ProviderFor(FeedController)
 final feedControllerProvider =
-    AutoDisposeStreamNotifierProvider<FeedController, List<PostModel>>.internal(
+    AutoDisposeAsyncNotifierProvider<FeedController, List<PostModel>>.internal(
       FeedController.new,
       name: r'feedControllerProvider',
       debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
@@ -21,6 +21,6 @@ final feedControllerProvider =
       allTransitiveDependencies: null,
     );
 
-typedef _$FeedController = AutoDisposeStreamNotifier<List<PostModel>>;
+typedef _$FeedController = AutoDisposeAsyncNotifier<List<PostModel>>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

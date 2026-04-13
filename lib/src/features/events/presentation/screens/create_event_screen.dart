@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../controllers/create_event_controller.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 
@@ -30,14 +31,22 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
     super.dispose();
   }
 
-  void _submitEvent() {
+  void _submitEvent() async {
     if (!_formKey.currentState!.validate()) return;
     
-    // TODO: Wire up to feedControllerProvider
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Event Hosted Successfully!')),
+    final success = await ref.read(createEventControllerProvider.notifier).createEvent(
+      title: _nameController.text.trim(),
+      location: _placeController.text.trim(),
+      category: _selectedCategory,
     );
-    context.go('/feed');
+
+    if (success && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Event Hosted Successfully!')),
+      );
+      // Go back to the feed branch
+      context.go('/feed');
+    }
   }
 
   @override
@@ -157,9 +166,25 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
 
                     const SizedBox(height: 48),
 
-                    AnimatedPrimaryButton(
-                      text: 'Publish Event',
-                      onPressed: _submitEvent,
+                    Consumer(
+                      builder: (context, ref, child) {
+                        final state = ref.watch(createEventControllerProvider);
+                        final isLoading = state.isLoading;
+                        
+                        return Column(
+                          children: [
+                            if (state.hasError)
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 16),
+                                child: Text(state.error.toString(), style: const TextStyle(color: Colors.red)),
+                              ),
+                            AnimatedPrimaryButton(
+                              text: isLoading ? 'Publishing...' : 'Publish Event',
+                              onPressed: isLoading ? () {} : _submitEvent,
+                            ),
+                          ],
+                        );
+                      }
                     ).animate().fade(delay: 500.ms).slideY(begin: 0.2),
 
                     const SizedBox(height: 120), // Padding for Bottom Nav Bar

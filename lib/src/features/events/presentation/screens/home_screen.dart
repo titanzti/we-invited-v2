@@ -31,20 +31,15 @@ class HomeScreen extends ConsumerWidget {
                   children: [
                     Text(
                       'Discover',
-                      style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                        color: Colors.grey.shade600,
-                        fontWeight: FontWeight.w500,
-                        letterSpacing: 1,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: AppTheme.textMetadata,
+                        letterSpacing: 0,
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       'Outstanding Events',
-                      style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                        fontWeight: FontWeight.w900,
-                        color: AppTheme.primaryDark,
-                        height: 1.1,
-                      ),
+                      style: Theme.of(context).textTheme.displayMedium,
                     ),
                     const SizedBox(height: 24),
                   ],
@@ -108,8 +103,9 @@ class PremiumPostCard extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           color: AppTheme.surfaceWhite,
-          borderRadius: BorderRadius.circular(24),
-          boxShadow: PremiumShadows.softCard,
+          borderRadius: BorderRadius.circular(12),  // Notion default card radius
+          border: Border.all(color: AppTheme.borderLight, width: 1), // Whisper border
+          boxShadow: PremiumShadows.softCard,      // Ambient layered occlusion
         ),
         clipBehavior: Clip.antiAlias,
         child: Column(
@@ -145,18 +141,14 @@ class PremiumPostCard extends StatelessWidget {
                     children: [
                       if (post.category.isNotEmpty)
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(
-                            color: AppTheme.secondaryTeal.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(8),
+                            color: const Color(0xFFF2F9FF), // Notion Pill BG
+                            borderRadius: BorderRadius.circular(9999), // Notion Pill
                           ),
                           child: Text(
-                            post.category.toUpperCase(),
-                            style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                              color: AppTheme.secondaryTeal,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 1,
-                            ),
+                            post.category, // Standard case rather than ALL CAPS for Notion Badges
+                            style: Theme.of(context).textTheme.labelSmall, // Inherits specific Notion badge styling
                           ),
                         ),
                       const Icon(Icons.favorite_border, color: AppTheme.primaryDark),

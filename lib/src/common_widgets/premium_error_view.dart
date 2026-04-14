@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import '../theme/app_theme.dart';
+import '../constants/app_theme.dart';
 import 'global_premium_widgets.dart';
 
 class PremiumErrorView extends StatelessWidget {
@@ -25,7 +24,7 @@ class PremiumErrorView extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: AppTheme.error.withOpacity(0.1),
+              color: AppTheme.error.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
             child: const Icon(

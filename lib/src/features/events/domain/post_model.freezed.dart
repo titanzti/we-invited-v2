@@ -25,14 +25,14 @@ mixin _$PostModel {
   String get uid => throw _privateConstructorUsedError;
   String get name => throw _privateConstructorUsedError;
   String get place => throw _privateConstructorUsedError;
-  @TimestampConverter()
-  Timestamp? get startdateTime => throw _privateConstructorUsedError;
-  @TimestampConverter()
-  Timestamp? get entdateTime => throw _privateConstructorUsedError;
-  @TimestampConverter()
-  Timestamp? get createdAt => throw _privateConstructorUsedError;
-  @TimestampConverter()
-  Timestamp? get updatedAt => throw _privateConstructorUsedError;
+  @DateTimeConverter()
+  DateTime? get startdateTime => throw _privateConstructorUsedError;
+  @DateTimeConverter()
+  DateTime? get entdateTime => throw _privateConstructorUsedError;
+  @DateTimeConverter()
+  DateTime? get createdAt => throw _privateConstructorUsedError;
+  @DateTimeConverter()
+  DateTime? get updatedAt => throw _privateConstructorUsedError;
   String get image => throw _privateConstructorUsedError;
   String get emailuser => throw _privateConstructorUsedError;
   String get address => throw _privateConstructorUsedError;
@@ -41,9 +41,11 @@ mixin _$PostModel {
   String get gender => throw _privateConstructorUsedError;
   String get postbyname => throw _privateConstructorUsedError;
   String get postbyimage => throw _privateConstructorUsedError;
-  @JsonKey(name: 'Numpeople')
   String get numpeople => throw _privateConstructorUsedError;
   String get agerange => throw _privateConstructorUsedError;
+  bool get requiresApproval => throw _privateConstructorUsedError;
+  double? get latitude => throw _privateConstructorUsedError;
+  double? get longitude => throw _privateConstructorUsedError;
 
   /// Serializes this PostModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -65,10 +67,10 @@ abstract class $PostModelCopyWith<$Res> {
     String uid,
     String name,
     String place,
-    @TimestampConverter() Timestamp? startdateTime,
-    @TimestampConverter() Timestamp? entdateTime,
-    @TimestampConverter() Timestamp? createdAt,
-    @TimestampConverter() Timestamp? updatedAt,
+    @DateTimeConverter() DateTime? startdateTime,
+    @DateTimeConverter() DateTime? entdateTime,
+    @DateTimeConverter() DateTime? createdAt,
+    @DateTimeConverter() DateTime? updatedAt,
     String image,
     String emailuser,
     String address,
@@ -77,8 +79,11 @@ abstract class $PostModelCopyWith<$Res> {
     String gender,
     String postbyname,
     String postbyimage,
-    @JsonKey(name: 'Numpeople') String numpeople,
+    String numpeople,
     String agerange,
+    bool requiresApproval,
+    double? latitude,
+    double? longitude,
   });
 }
 
@@ -115,6 +120,9 @@ class _$PostModelCopyWithImpl<$Res, $Val extends PostModel>
     Object? postbyimage = null,
     Object? numpeople = null,
     Object? agerange = null,
+    Object? requiresApproval = null,
+    Object? latitude = freezed,
+    Object? longitude = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -137,19 +145,19 @@ class _$PostModelCopyWithImpl<$Res, $Val extends PostModel>
             startdateTime: freezed == startdateTime
                 ? _value.startdateTime
                 : startdateTime // ignore: cast_nullable_to_non_nullable
-                      as Timestamp?,
+                      as DateTime?,
             entdateTime: freezed == entdateTime
                 ? _value.entdateTime
                 : entdateTime // ignore: cast_nullable_to_non_nullable
-                      as Timestamp?,
+                      as DateTime?,
             createdAt: freezed == createdAt
                 ? _value.createdAt
                 : createdAt // ignore: cast_nullable_to_non_nullable
-                      as Timestamp?,
+                      as DateTime?,
             updatedAt: freezed == updatedAt
                 ? _value.updatedAt
                 : updatedAt // ignore: cast_nullable_to_non_nullable
-                      as Timestamp?,
+                      as DateTime?,
             image: null == image
                 ? _value.image
                 : image // ignore: cast_nullable_to_non_nullable
@@ -190,6 +198,18 @@ class _$PostModelCopyWithImpl<$Res, $Val extends PostModel>
                 ? _value.agerange
                 : agerange // ignore: cast_nullable_to_non_nullable
                       as String,
+            requiresApproval: null == requiresApproval
+                ? _value.requiresApproval
+                : requiresApproval // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            latitude: freezed == latitude
+                ? _value.latitude
+                : latitude // ignore: cast_nullable_to_non_nullable
+                      as double?,
+            longitude: freezed == longitude
+                ? _value.longitude
+                : longitude // ignore: cast_nullable_to_non_nullable
+                      as double?,
           )
           as $Val,
     );
@@ -210,10 +230,10 @@ abstract class _$$PostModelImplCopyWith<$Res>
     String uid,
     String name,
     String place,
-    @TimestampConverter() Timestamp? startdateTime,
-    @TimestampConverter() Timestamp? entdateTime,
-    @TimestampConverter() Timestamp? createdAt,
-    @TimestampConverter() Timestamp? updatedAt,
+    @DateTimeConverter() DateTime? startdateTime,
+    @DateTimeConverter() DateTime? entdateTime,
+    @DateTimeConverter() DateTime? createdAt,
+    @DateTimeConverter() DateTime? updatedAt,
     String image,
     String emailuser,
     String address,
@@ -222,8 +242,11 @@ abstract class _$$PostModelImplCopyWith<$Res>
     String gender,
     String postbyname,
     String postbyimage,
-    @JsonKey(name: 'Numpeople') String numpeople,
+    String numpeople,
     String agerange,
+    bool requiresApproval,
+    double? latitude,
+    double? longitude,
   });
 }
 
@@ -259,6 +282,9 @@ class __$$PostModelImplCopyWithImpl<$Res>
     Object? postbyimage = null,
     Object? numpeople = null,
     Object? agerange = null,
+    Object? requiresApproval = null,
+    Object? latitude = freezed,
+    Object? longitude = freezed,
   }) {
     return _then(
       _$PostModelImpl(
@@ -281,19 +307,19 @@ class __$$PostModelImplCopyWithImpl<$Res>
         startdateTime: freezed == startdateTime
             ? _value.startdateTime
             : startdateTime // ignore: cast_nullable_to_non_nullable
-                  as Timestamp?,
+                  as DateTime?,
         entdateTime: freezed == entdateTime
             ? _value.entdateTime
             : entdateTime // ignore: cast_nullable_to_non_nullable
-                  as Timestamp?,
+                  as DateTime?,
         createdAt: freezed == createdAt
             ? _value.createdAt
             : createdAt // ignore: cast_nullable_to_non_nullable
-                  as Timestamp?,
+                  as DateTime?,
         updatedAt: freezed == updatedAt
             ? _value.updatedAt
             : updatedAt // ignore: cast_nullable_to_non_nullable
-                  as Timestamp?,
+                  as DateTime?,
         image: null == image
             ? _value.image
             : image // ignore: cast_nullable_to_non_nullable
@@ -334,6 +360,18 @@ class __$$PostModelImplCopyWithImpl<$Res>
             ? _value.agerange
             : agerange // ignore: cast_nullable_to_non_nullable
                   as String,
+        requiresApproval: null == requiresApproval
+            ? _value.requiresApproval
+            : requiresApproval // ignore: cast_nullable_to_non_nullable
+                  as bool,
+        latitude: freezed == latitude
+            ? _value.latitude
+            : latitude // ignore: cast_nullable_to_non_nullable
+                  as double?,
+        longitude: freezed == longitude
+            ? _value.longitude
+            : longitude // ignore: cast_nullable_to_non_nullable
+                  as double?,
       ),
     );
   }
@@ -347,10 +385,10 @@ class _$PostModelImpl implements _PostModel {
     required this.uid,
     this.name = '',
     this.place = '',
-    @TimestampConverter() this.startdateTime,
-    @TimestampConverter() this.entdateTime,
-    @TimestampConverter() this.createdAt,
-    @TimestampConverter() this.updatedAt,
+    @DateTimeConverter() this.startdateTime,
+    @DateTimeConverter() this.entdateTime,
+    @DateTimeConverter() this.createdAt,
+    @DateTimeConverter() this.updatedAt,
     this.image = '',
     this.emailuser = '',
     this.address = '',
@@ -359,8 +397,11 @@ class _$PostModelImpl implements _PostModel {
     this.gender = '',
     this.postbyname = '',
     this.postbyimage = '',
-    @JsonKey(name: 'Numpeople') this.numpeople = '',
+    this.numpeople = '',
     this.agerange = '',
+    this.requiresApproval = false,
+    this.latitude,
+    this.longitude,
   });
 
   factory _$PostModelImpl.fromJson(Map<String, dynamic> json) =>
@@ -377,17 +418,17 @@ class _$PostModelImpl implements _PostModel {
   @JsonKey()
   final String place;
   @override
-  @TimestampConverter()
-  final Timestamp? startdateTime;
+  @DateTimeConverter()
+  final DateTime? startdateTime;
   @override
-  @TimestampConverter()
-  final Timestamp? entdateTime;
+  @DateTimeConverter()
+  final DateTime? entdateTime;
   @override
-  @TimestampConverter()
-  final Timestamp? createdAt;
+  @DateTimeConverter()
+  final DateTime? createdAt;
   @override
-  @TimestampConverter()
-  final Timestamp? updatedAt;
+  @DateTimeConverter()
+  final DateTime? updatedAt;
   @override
   @JsonKey()
   final String image;
@@ -413,15 +454,22 @@ class _$PostModelImpl implements _PostModel {
   @JsonKey()
   final String postbyimage;
   @override
-  @JsonKey(name: 'Numpeople')
+  @JsonKey()
   final String numpeople;
   @override
   @JsonKey()
   final String agerange;
+  @override
+  @JsonKey()
+  final bool requiresApproval;
+  @override
+  final double? latitude;
+  @override
+  final double? longitude;
 
   @override
   String toString() {
-    return 'PostModel(postid: $postid, uid: $uid, name: $name, place: $place, startdateTime: $startdateTime, entdateTime: $entdateTime, createdAt: $createdAt, updatedAt: $updatedAt, image: $image, emailuser: $emailuser, address: $address, description: $description, category: $category, gender: $gender, postbyname: $postbyname, postbyimage: $postbyimage, numpeople: $numpeople, agerange: $agerange)';
+    return 'PostModel(postid: $postid, uid: $uid, name: $name, place: $place, startdateTime: $startdateTime, entdateTime: $entdateTime, createdAt: $createdAt, updatedAt: $updatedAt, image: $image, emailuser: $emailuser, address: $address, description: $description, category: $category, gender: $gender, postbyname: $postbyname, postbyimage: $postbyimage, numpeople: $numpeople, agerange: $agerange, requiresApproval: $requiresApproval, latitude: $latitude, longitude: $longitude)';
   }
 
   @override
@@ -457,12 +505,18 @@ class _$PostModelImpl implements _PostModel {
             (identical(other.numpeople, numpeople) ||
                 other.numpeople == numpeople) &&
             (identical(other.agerange, agerange) ||
-                other.agerange == agerange));
+                other.agerange == agerange) &&
+            (identical(other.requiresApproval, requiresApproval) ||
+                other.requiresApproval == requiresApproval) &&
+            (identical(other.latitude, latitude) ||
+                other.latitude == latitude) &&
+            (identical(other.longitude, longitude) ||
+                other.longitude == longitude));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(
+  int get hashCode => Object.hashAll([
     runtimeType,
     postid,
     uid,
@@ -482,7 +536,10 @@ class _$PostModelImpl implements _PostModel {
     postbyimage,
     numpeople,
     agerange,
-  );
+    requiresApproval,
+    latitude,
+    longitude,
+  ]);
 
   /// Create a copy of PostModel
   /// with the given fields replaced by the non-null parameter values.
@@ -504,10 +561,10 @@ abstract class _PostModel implements PostModel {
     required final String uid,
     final String name,
     final String place,
-    @TimestampConverter() final Timestamp? startdateTime,
-    @TimestampConverter() final Timestamp? entdateTime,
-    @TimestampConverter() final Timestamp? createdAt,
-    @TimestampConverter() final Timestamp? updatedAt,
+    @DateTimeConverter() final DateTime? startdateTime,
+    @DateTimeConverter() final DateTime? entdateTime,
+    @DateTimeConverter() final DateTime? createdAt,
+    @DateTimeConverter() final DateTime? updatedAt,
     final String image,
     final String emailuser,
     final String address,
@@ -516,8 +573,11 @@ abstract class _PostModel implements PostModel {
     final String gender,
     final String postbyname,
     final String postbyimage,
-    @JsonKey(name: 'Numpeople') final String numpeople,
+    final String numpeople,
     final String agerange,
+    final bool requiresApproval,
+    final double? latitude,
+    final double? longitude,
   }) = _$PostModelImpl;
 
   factory _PostModel.fromJson(Map<String, dynamic> json) =
@@ -532,17 +592,17 @@ abstract class _PostModel implements PostModel {
   @override
   String get place;
   @override
-  @TimestampConverter()
-  Timestamp? get startdateTime;
+  @DateTimeConverter()
+  DateTime? get startdateTime;
   @override
-  @TimestampConverter()
-  Timestamp? get entdateTime;
+  @DateTimeConverter()
+  DateTime? get entdateTime;
   @override
-  @TimestampConverter()
-  Timestamp? get createdAt;
+  @DateTimeConverter()
+  DateTime? get createdAt;
   @override
-  @TimestampConverter()
-  Timestamp? get updatedAt;
+  @DateTimeConverter()
+  DateTime? get updatedAt;
   @override
   String get image;
   @override
@@ -560,10 +620,15 @@ abstract class _PostModel implements PostModel {
   @override
   String get postbyimage;
   @override
-  @JsonKey(name: 'Numpeople')
   String get numpeople;
   @override
   String get agerange;
+  @override
+  bool get requiresApproval;
+  @override
+  double? get latitude;
+  @override
+  double? get longitude;
 
   /// Create a copy of PostModel
   /// with the given fields replaced by the non-null parameter values.

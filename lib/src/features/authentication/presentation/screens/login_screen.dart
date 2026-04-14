@@ -6,9 +6,10 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../controllers/auth_controller.dart';
 import '../../../../constants/app_theme.dart';
 import '../../../../utils/snackbar_utils.dart';
-import '../../../../constants/firebase_paths.dart'; // Future-ready
+
 import '../../../../common_widgets/global_premium_widgets.dart';
 import '../../../../exceptions/app_exception.dart'; // Clean Architecture Error Handler
+import 'package:dio/dio.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -34,12 +35,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         _passwordController.text,
       );
       // Success router redirect handles by app_router automatically!
+    } on DioException catch (e) {
+      if (!mounted) return;
+      if (e.response?.statusCode == 401) {
+        SnackBarUtils.showError(context, 'Invalid email or password');
+        return;
+      }
+      final mappedException = AppException.fromDio(e);
+      SnackBarUtils.showError(context, mappedException.message);
     } catch (e) {
       if (!mounted) return;
-      
-      // Elite World-Class exception interception
-      final mappedException = AppException.fromFirebase(e);
-      SnackBarUtils.showError(context, mappedException.message);
+      SnackBarUtils.showError(context, 'Something went wrong. Please try again.');
     }
   }
 
@@ -88,7 +94,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     labelText: 'Email',
                     prefixIcon: Icon(Icons.email_outlined),
                   ),
-                  validator: (value) => value == null || value.isEmpty ? 'Please enter email' : null,
+                  validator: (value) {
+                    final email = value?.trim() ?? '';
+                    if (email.isEmpty) return 'Please enter email';
+                    final emailRegex = RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$');
+                    if (!emailRegex.hasMatch(email)) return 'Please enter a valid email';
+                    return null;
+                  },
                   enabled: !isLoading,
                 ).animate().fade(duration: 500.ms, delay: 400.ms).slideY(begin: 0.1),
 

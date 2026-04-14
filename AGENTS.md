@@ -49,3 +49,4 @@ lib/
 3. **Custom lints**: Enabled via `riverpod_lint` in analysis_options.yaml
 4. **Flutter version**: Managed via FVM (`.fvmrc`)
 5. **Code Validation**: Every time you modify a file, you MUST immediately analyze it by running `fvm flutter analyze <file_path>` to ensure there are no errors.
+6. **Git Workflow**: NEVER push directly to the `develop` or `main` branches. All updates to `develop` MUST pass through a Pull Request from a feature branch.

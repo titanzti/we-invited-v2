@@ -7,6 +7,7 @@ import '../controllers/auth_controller.dart';
 import '../../../../constants/app_theme.dart';
 import '../../../../utils/snackbar_utils.dart';
 import '../../../../common_widgets/global_premium_widgets.dart';
+import '../../../../exceptions/app_exception.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
@@ -35,7 +36,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       // Wait for AuthState to trigger router redirect!
     } catch (e) {
       if (!mounted) return;
-      SnackBarUtils.showError(context, e.toString());
+      final mapped = AppException.fromDio(e);
+      SnackBarUtils.showError(context, mapped.message);
     }
   }
 
@@ -104,7 +106,13 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     labelText: 'Email',
                     prefixIcon: Icon(Icons.email_outlined),
                   ),
-                  validator: (value) => value == null || value.isEmpty ? 'Please enter email' : null,
+                  validator: (value) {
+                    final email = value?.trim() ?? '';
+                    if (email.isEmpty) return 'Please enter email';
+                    final emailRegex = RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$');
+                    if (!emailRegex.hasMatch(email)) return 'Please enter a valid email';
+                    return null;
+                  },
                   enabled: !isLoading,
                 ).animate().fade(duration: 500.ms, delay: 400.ms).slideY(begin: 0.1),
 
@@ -117,7 +125,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     labelText: 'Password',
                     prefixIcon: Icon(Icons.lock_outline),
                   ),
-                  validator: (value) => value == null || value.isEmpty ? 'Please enter password' : null,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) return 'Please enter password';
+                    if (value.length < 8) return 'Password must be at least 8 characters';
+                    return null;
+                  },
                   enabled: !isLoading,
                 ).animate().fade(duration: 500.ms, delay: 500.ms).slideY(begin: 0.1),
 

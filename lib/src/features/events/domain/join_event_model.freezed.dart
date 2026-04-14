@@ -34,8 +34,8 @@ mixin _$JoinEventModel {
   String get status => throw _privateConstructorUsedError;
   String get type => throw _privateConstructorUsedError;
   String get title => throw _privateConstructorUsedError;
-  @TimestampConverter()
-  Timestamp? get createdAt => throw _privateConstructorUsedError;
+  @DateTimeConverter()
+  DateTime? get createdAt => throw _privateConstructorUsedError;
 
   /// Serializes this JoinEventModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -68,7 +68,7 @@ abstract class $JoinEventModelCopyWith<$Res> {
     String status,
     String type,
     String title,
-    @TimestampConverter() Timestamp? createdAt,
+    @DateTimeConverter() DateTime? createdAt,
   });
 }
 
@@ -159,7 +159,7 @@ class _$JoinEventModelCopyWithImpl<$Res, $Val extends JoinEventModel>
             createdAt: freezed == createdAt
                 ? _value.createdAt
                 : createdAt // ignore: cast_nullable_to_non_nullable
-                      as Timestamp?,
+                      as DateTime?,
           )
           as $Val,
     );
@@ -189,7 +189,7 @@ abstract class _$$JoinEventModelImplCopyWith<$Res>
     String status,
     String type,
     String title,
-    @TimestampConverter() Timestamp? createdAt,
+    @DateTimeConverter() DateTime? createdAt,
   });
 }
 
@@ -279,7 +279,7 @@ class __$$JoinEventModelImplCopyWithImpl<$Res>
         createdAt: freezed == createdAt
             ? _value.createdAt
             : createdAt // ignore: cast_nullable_to_non_nullable
-                  as Timestamp?,
+                  as DateTime?,
       ),
     );
   }
@@ -302,7 +302,7 @@ class _$JoinEventModelImpl implements _JoinEventModel {
     this.status = '',
     this.type = '',
     this.title = '',
-    @TimestampConverter() this.createdAt,
+    @DateTimeConverter() this.createdAt,
   });
 
   factory _$JoinEventModelImpl.fromJson(Map<String, dynamic> json) =>
@@ -346,8 +346,8 @@ class _$JoinEventModelImpl implements _JoinEventModel {
   @JsonKey()
   final String title;
   @override
-  @TimestampConverter()
-  final Timestamp? createdAt;
+  @DateTimeConverter()
+  final DateTime? createdAt;
 
   @override
   String toString() {
@@ -435,7 +435,7 @@ abstract class _JoinEventModel implements JoinEventModel {
     final String status,
     final String type,
     final String title,
-    @TimestampConverter() final Timestamp? createdAt,
+    @DateTimeConverter() final DateTime? createdAt,
   }) = _$JoinEventModelImpl;
 
   factory _JoinEventModel.fromJson(Map<String, dynamic> json) =
@@ -468,8 +468,8 @@ abstract class _JoinEventModel implements JoinEventModel {
   @override
   String get title;
   @override
-  @TimestampConverter()
-  Timestamp? get createdAt;
+  @DateTimeConverter()
+  DateTime? get createdAt;
 
   /// Create a copy of JoinEventModel
   /// with the given fields replaced by the non-null parameter values.

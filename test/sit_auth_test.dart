@@ -1,17 +1,13 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:we_invited_v2/src/features/authentication/data/auth_repository.dart';
 import 'package:dio/dio.dart';
 import 'package:we_invited_v2/src/features/authentication/domain/user_model.dart';
 
 void main() {
   group('SIT Mobile Auth Integration', () {
     late Dio mockDio;
-    late AuthRepository authRepository;
 
     setUp(() {
-      // Create a disconnected Dio instance for SIT offline compatibility
       mockDio = Dio(BaseOptions(baseUrl: 'http://localhost:3000'));
-      authRepository = AuthRepository(mockDio);
     });
 
     test('AuthRepository properly maps User data from API structure', () async {
@@ -34,7 +30,6 @@ void main() {
     });
 
     test('AuthRepository expects 200 on /auth/me for Token Validation', () async {
-      final method = mockDio.options.method;
       // Demonstrates configuration is correct for E2E
       expect(mockDio.options.baseUrl, 'http://localhost:3000');
     });

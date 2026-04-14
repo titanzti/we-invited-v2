@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'src/routing/app_router.dart';
 import 'src/constants/app_theme.dart';
 import 'src/utils/api_client.dart';
@@ -29,6 +28,8 @@ class MyApp extends ConsumerWidget {
     return MaterialApp.router(
       title: 'We Invited V2',
       theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
+      themeMode: ThemeMode.system,
       routerConfig: router,
       debugShowCheckedModeBanner: false,
     );

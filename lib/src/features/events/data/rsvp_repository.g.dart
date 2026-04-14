@@ -6,7 +6,7 @@ part of 'rsvp_repository.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$rsvpRepositoryHash() => r'd529e50dd9ce63719725bcae29fd6e0730260af8';
+String _$rsvpRepositoryHash() => r'8ea44bf9b1f7c6047096e3b306bf940f76ce00fb';
 
 /// See also [rsvpRepository].
 @ProviderFor(rsvpRepository)

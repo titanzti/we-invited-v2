@@ -1,12 +1,15 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../utils/api_client.dart';
+import '../../../utils/api_response.dart';
 import '../domain/rsvp_model.dart';
 import '../domain/notification_prefs_model.dart';
+import '../domain/invite_model.dart';
+import 'rsvp_list_response.dart';
 
 part 'rsvp_repository.g.dart';
 
 @Riverpod(keepAlive: true)
-RSVPRepository rsvpRepository(RSVPRepositoryRef ref) {
+RSVPRepository rsvpRepository(RsvpRepositoryRef ref) {
   return RSVPRepository();
 }
 
@@ -28,7 +31,11 @@ class RSVPRepository {
           if (note != null && note.isNotEmpty) 'note': note,
         },
       );
-      return RSVPModel.fromJson(response.data['data'] as Map<String, dynamic>);
+      final result = ApiResponse<RSVPModel>.fromJson(
+        response.data,
+        (data) => RSVPModel.fromJson(data),
+      );
+      return result.data!;
     } catch (e) {
       throw Exception('Failed to submit RSVP: $e');
     }
@@ -37,8 +44,8 @@ class RSVPRepository {
   Future<List<RSVPModel>> getEventRSVPs(String eventId) async {
     try {
       final response = await ApiClient.instance.get('/rsvp/$eventId');
-      final data = response.data['data'] as List;
-      return data.map((json) => RSVPModel.fromJson(json as Map<String, dynamic>)).toList();
+      final result = RsvpListResponse.fromJson(response.data);
+      return result.data ?? [];
     } catch (e) {
       throw Exception('Failed to load RSVPs: $e');
     }
@@ -47,7 +54,8 @@ class RSVPRepository {
   Future<RSVPStats> getEventRSVPStats(String eventId) async {
     try {
       final response = await ApiClient.instance.get('/rsvp/$eventId');
-      return RSVPStats.fromJson(response.data['stats'] as Map<String, dynamic>);
+      final result = RsvpListResponse.fromJson(response.data);
+      return result.stats ?? const RSVPStats();
     } catch (e) {
       throw Exception('Failed to load RSVP stats: $e');
     }
@@ -56,52 +64,93 @@ class RSVPRepository {
   Future<List<RSVPModel>> getMyRSVPs() async {
     try {
       final response = await ApiClient.instance.get('/rsvp/my');
-      final data = response.data['data'] as List;
-      return data.map((json) => RSVPModel.fromJson(json as Map<String, dynamic>)).toList();
+      final result = ApiResponse<List<RSVPModel>>.fromJson(
+        response.data,
+        (data) => List<RSVPModel>.from(
+          (data as List).map((x) => RSVPModel.fromJson(x)),
+        ),
+      );
+      return result.data ?? [];
     } catch (e) {
       throw Exception('Failed to load my RSVPs: $e');
     }
   }
 
-  Future<List<Map<String, dynamic>>> sendInvites(String eventId, List<String> inviteeIds) async {
+  Future<List<InviteModel>> sendInvites(String eventId, List<String> inviteeIds) async {
     try {
       final response = await ApiClient.instance.post(
         '/rsvp/invite/$eventId',
         data: {'inviteeIds': inviteeIds},
       );
-      return (response.data['data'] as List).cast<Map<String, dynamic>>();
+      final result = ApiResponse<List<InviteModel>>.fromJson(
+        response.data,
+        (data) => List<InviteModel>.from(
+          (data as List).map((x) => InviteModel.fromJson(x)),
+        ),
+      );
+      return result.data ?? [];
     } catch (e) {
       throw Exception('Failed to send invites: $e');
     }
   }
 
-  Future<List<Map<String, dynamic>>> getMyInvites() async {
+  Future<List<InviteModel>> getMyInvites() async {
     try {
       final response = await ApiClient.instance.get('/rsvp/invite/my');
-      return (response.data['data'] as List).cast<Map<String, dynamic>>();
+      final result = ApiResponse<List<InviteModel>>.fromJson(
+        response.data,
+        (data) => List<InviteModel>.from(
+          (data as List).map((x) => InviteModel.fromJson(x)),
+        ),
+      );
+      return result.data ?? [];
     } catch (e) {
       throw Exception('Failed to load invites: $e');
     }
   }
 
-  Future<Map<String, dynamic>> respondToInvite(String inviteId, String action) async {
+  Future<InviteModel> respondToInvite(String inviteId, String action) async {
     try {
       final response = await ApiClient.instance.patch(
         '/rsvp/invite/$inviteId',
         data: {'action': action},
       );
-      return response.data as Map<String, dynamic>;
+      final result = ApiResponse<InviteModel>.fromJson(
+        response.data,
+        (data) => InviteModel.fromJson(data),
+      );
+      return result.data!;
     } catch (e) {
       throw Exception('Failed to respond to invite: $e');
+    }
+  }
+
+  Future<List<RSVPUserModel>> searchUsers(String query) async {
+    try {
+      final response = await ApiClient.instance.get(
+        '/users/search',
+        queryParameters: {'q': query},
+      );
+      final result = ApiResponse<List<RSVPUserModel>>.fromJson(
+        response.data,
+        (data) => List<RSVPUserModel>.from(
+          (data as List).map((x) => RSVPUserModel.fromJson(x)),
+        ),
+      );
+      return result.data ?? [];
+    } catch (e) {
+      throw Exception('Failed to search users: $e');
     }
   }
 
   Future<NotificationPrefsModel> getNotificationPrefs() async {
     try {
       final response = await ApiClient.instance.get('/rsvp/notification-prefs');
-      return NotificationPrefsModel.fromJson(
-        response.data['data'] as Map<String, dynamic>,
+      final result = ApiResponse<NotificationPrefsModel>.fromJson(
+        response.data,
+        (data) => NotificationPrefsModel.fromJson(data),
       );
+      return result.data!;
     } catch (e) {
       throw Exception('Failed to load notification preferences: $e');
     }
@@ -113,9 +162,11 @@ class RSVPRepository {
         '/rsvp/notification-prefs',
         data: prefs.toJson(),
       );
-      return NotificationPrefsModel.fromJson(
-        response.data['data'] as Map<String, dynamic>,
+      final result = ApiResponse<NotificationPrefsModel>.fromJson(
+        response.data,
+        (data) => NotificationPrefsModel.fromJson(data),
       );
+      return result.data!;
     } catch (e) {
       throw Exception('Failed to update notification preferences: $e');
     }

@@ -7,7 +7,11 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:intl/intl.dart';
 
 import '../../domain/post_model.dart';
+import '../../domain/rsvp_model.dart';
 import '../../data/post_repository.dart';
+import '../../presentation/controllers/rsvp_controller.dart';
+import '../../presentation/widgets/rsvp_status_card.dart';
+import '../../../authentication/data/auth_repository.dart';
 import '../../../../constants/app_theme.dart';
 import '../../../../common_widgets/global_premium_widgets.dart';
 
@@ -24,6 +28,69 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
   bool _isJoining = false;
   bool _hasJoined = false;
   bool _isPendingApproval = false;
+  RSVPStatus? _myRSVPStatus;
+  int _guestCount = 0;
+  RSVPStats? _rsvpStats;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadRSVPStats();
+  }
+
+  Future<void> _loadRSVPStats() async {
+    try {
+      final stats = await ref.read(rsvpControllerProvider.notifier).getEventRSVPStats(widget.post.postid);
+      if (mounted) {
+        setState(() => _rsvpStats = stats);
+      }
+    } catch (e) {
+      // Silently ignore stats load failure
+    }
+  }
+
+  Future<void> _submitRSVP(RSVPStatus status) async {
+    HapticFeedback.mediumImpact();
+    
+    // Show guest count dialog if going
+    if (status == RSVPStatus.going) {
+      final guestCount = await showDialog<int>(
+        context: context,
+        builder: (context) => _GuestCountDialog(currentCount: _guestCount),
+      );
+      if (guestCount == null) return;
+      _guestCount = guestCount;
+    }
+
+    setState(() => _isJoining = true);
+    try {
+      await ref.read(rsvpControllerProvider.notifier).submitRSVP(
+        eventId: widget.post.postid,
+        status: status,
+        guestCount: status == RSVPStatus.going ? _guestCount : 0,
+      );
+
+      if (mounted) {
+        HapticFeedback.heavyImpact();
+        setState(() {
+          _myRSVPStatus = status;
+          _isJoining = false;
+        });
+
+        final messages = {
+          RSVPStatus.going: '🎉 You\'re going! +$_guestCount guests',
+          RSVPStatus.maybe: '🤔 Maybe - we\'ll keep you posted',
+          RSVPStatus.notGoing: '😔 Not going - maybe next time',
+        };
+        PremiumToast.show(context, messages[status]!);
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isJoining = false);
+        PremiumToast.show(context, 'Failed to RSVP. Try again.', isError: true);
+      }
+    }
+  }
 
   String _formatEventDate(DateTime? date) {
     if (date == null) return 'TBD';
@@ -63,7 +130,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
             ),
             const SizedBox(height: 16),
             Text(
-              widget.post.requiresApproval ? 'Request to Join?' : 'Join this Event?',
+              widget.post.requiresApproval ? 'Request to Join' : 'Join this Event?',
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 8),
@@ -103,7 +170,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
             Row(
               children: [
                 Expanded(
-                  child: OutlinedButton(
+                  child: TextButton(
                     onPressed: () => Navigator.pop(context, false),
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 14),
@@ -148,7 +215,8 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
       } catch (e) {
         if (mounted) {
           setState(() => _isJoining = false);
-          PremiumToast.show(context, 'Failed to join. Try again.', isError: true);
+          final msg = e.toString().replaceFirst('Exception: ', '');
+          PremiumToast.show(context, msg, isError: true);
         }
       }
     }
@@ -157,6 +225,8 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final authUser = ref.watch(authStateProvider).value;
+    final isHost = authUser != null && authUser.uid == widget.post.uid;
     final imageUrl = widget.post.image.isNotEmpty
         ? widget.post.image
         : 'https://images.unsplash.com/photo-1544928147-79a2dbc1f389?q=80&w=800&auto=format&fit=crop';
@@ -187,6 +257,27 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                   ),
                 ),
                 actions: [
+                  // Invite
+                  Builder(builder: (context) {
+                    if (!isHost) return const SizedBox.shrink();
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 8.0),
+                      child: GestureDetector(
+                        onTap: () {
+                          HapticFeedback.lightImpact();
+                          context.push('/feed/event/invite', extra: widget.post);
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.3),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.person_add, color: Colors.white, size: 18),
+                        ),
+                      ),
+                    );
+                  }),
                   Padding(
                     padding: const EdgeInsets.only(right: 8.0),
                     child: GestureDetector(
@@ -227,7 +318,6 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Category + Date row
                       Row(
                         children: [
                           Container(
@@ -365,6 +455,68 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                         ),
                       ).animate().fade(delay: 500.ms),
 
+                      const SizedBox(height: 28),
+
+                      // RSVP Section (only after joining and approved)
+                      if (_hasJoined && !_isPendingApproval) ...[
+                        Text(
+                          'Are you going?',
+                          style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                        ).animate().fade(delay: 600.ms),
+
+                        const SizedBox(height: 16),
+
+                        _RSVPActionButtons(
+                          currentStatus: _myRSVPStatus,
+                          isJoining: _isJoining,
+                          onGoing: () => _submitRSVP(RSVPStatus.going),
+                          onMaybe: () => _submitRSVP(RSVPStatus.maybe),
+                          onNotGoing: () => _submitRSVP(RSVPStatus.notGoing),
+                        ).animate().fade(delay: 700.ms).slideY(begin: 0.1),
+
+                        if (_myRSVPStatus != null && _myRSVPStatus == RSVPStatus.going) ...[
+                          const SizedBox(height: 12),
+                          Text(
+                            '+$_guestCount guest${_guestCount != 1 ? 's' : ''}',
+                            style: TextStyle(
+                              color: isDark ? AppTheme.darkTextSecondary : Colors.grey.shade600,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+
+                        const SizedBox(height: 28),
+                      ],
+
+                      if (_hasJoined && _isPendingApproval)
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.orange.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(Icons.hourglass_top, color: Colors.orange),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  'Waiting for host approval. You\'ll be able to RSVP once approved.',
+                                  style: TextStyle(color: Colors.orange.shade800, fontWeight: FontWeight.w500),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ).animate().fade(delay: 600.ms).slideY(begin: 0.1),
+
+                      if (_rsvpStats != null)
+                        RSVPStatusCard(
+                          stats: _rsvpStats!,
+                          onViewGuests: () => context.push('/feed/event/guests', extra: widget.post),
+                        ).animate().fade(delay: _hasJoined ? 750.ms : 600.ms).slideY(begin: 0.1),
+
                       const SizedBox(height: 120),
                     ],
                   ),
@@ -390,38 +542,61 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                   ),
                 ],
               ),
-              child: _hasJoined
+              child: isHost
                   ? Container(
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       decoration: BoxDecoration(
-                        color: (_isPendingApproval ? Colors.orange : AppTheme.secondaryTeal).withValues(alpha: 0.1),
+                        color: AppTheme.primaryBlue.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: (_isPendingApproval ? Colors.orange : AppTheme.secondaryTeal).withValues(alpha: 0.3)),
+                        border: Border.all(color: AppTheme.primaryBlue.withValues(alpha: 0.3)),
                       ),
-                      child: Row(
+                      child: const Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(
-                            _isPendingApproval ? Icons.hourglass_top : Icons.check_circle,
-                            color: _isPendingApproval ? Colors.orange : AppTheme.secondaryTeal,
-                          ),
-                          const SizedBox(width: 8),
+                          Icon(Icons.stars, color: AppTheme.primaryBlue),
+                          SizedBox(width: 8),
                           Text(
-                            _isPendingApproval ? 'Request Sent' : 'You\'re Going!',
+                            'Your Event',
                             style: TextStyle(
-                              color: _isPendingApproval ? Colors.orange : AppTheme.secondaryTeal,
+                              color: AppTheme.primaryBlue,
                               fontWeight: FontWeight.w700,
                               fontSize: 16,
                             ),
                           ),
                         ],
                       ),
-                    ).animate().scale(begin: const Offset(0.9, 0.9), curve: Curves.easeOutBack)
-                  : AnimatedPrimaryButton(
-                      text: _isJoining ? 'Joining...' : (widget.post.requiresApproval ? 'Request to Join' : 'Join Event'),
-                      onPressed: _isJoining ? null : _showJoinSheet,
-                      isLoading: _isJoining,
-                    ),
+                    )
+                  : _hasJoined
+                      ? Container(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          decoration: BoxDecoration(
+                            color: (_isPendingApproval ? Colors.orange : AppTheme.secondaryTeal).withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: (_isPendingApproval ? Colors.orange : AppTheme.secondaryTeal).withValues(alpha: 0.3)),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                _isPendingApproval ? Icons.hourglass_top : Icons.check_circle,
+                                color: _isPendingApproval ? Colors.orange : AppTheme.secondaryTeal,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                _isPendingApproval ? 'Request Sent' : 'You\'re Going!',
+                                style: TextStyle(
+                                  color: _isPendingApproval ? Colors.orange : AppTheme.secondaryTeal,
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ).animate().scale(begin: const Offset(0.9, 0.9), curve: Curves.easeOutBack)
+                      : AnimatedPrimaryButton(
+                          text: _isJoining ? 'Joining...' : (widget.post.requiresApproval ? 'Request to Join' : 'Join Event'),
+                          onPressed: _isJoining ? null : _showJoinSheet,
+                        ),
             ).animate().slideY(begin: 1.0, duration: 600.ms, delay: 600.ms, curve: Curves.easeOutQuart),
           ),
         ],
@@ -475,6 +650,183 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _RSVPActionButtons extends StatelessWidget {
+  final RSVPStatus? currentStatus;
+  final bool isJoining;
+  final VoidCallback onGoing;
+  final VoidCallback onMaybe;
+  final VoidCallback onNotGoing;
+
+  const _RSVPActionButtons({
+    required this.currentStatus,
+    required this.isJoining,
+    required this.onGoing,
+    required this.onMaybe,
+    required this.onNotGoing,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: _RSVPButton(
+            icon: Icons.check_circle,
+            label: 'Going',
+            color: Colors.green,
+            isSelected: currentStatus == RSVPStatus.going,
+            isLoading: isJoining,
+            onTap: currentStatus == RSVPStatus.going ? null : onGoing,
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: _RSVPButton(
+            icon: Icons.help_outline,
+            label: 'Maybe',
+            color: Colors.orange,
+            isSelected: currentStatus == RSVPStatus.maybe,
+            isLoading: isJoining,
+            onTap: currentStatus == RSVPStatus.maybe ? null : onMaybe,
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: _RSVPButton(
+            icon: Icons.cancel,
+            label: 'Not Going',
+            color: Colors.red,
+            isSelected: currentStatus == RSVPStatus.notGoing,
+            isLoading: isJoining,
+            onTap: currentStatus == RSVPStatus.notGoing ? null : onNotGoing,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _RSVPButton extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final Color color;
+  final bool isSelected;
+  final bool isLoading;
+  final VoidCallback? onTap;
+
+  const _RSVPButton({
+    required this.icon,
+    required this.label,
+    required this.color,
+    required this.isSelected,
+    required this.isLoading,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      child: OutlinedButton(
+        onPressed: isLoading ? null : onTap,
+        style: OutlinedButton.styleFrom(
+          backgroundColor: isSelected ? color.withValues(alpha: 0.1) : (isDark ? AppTheme.darkSurface : Colors.white),
+          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          side: BorderSide(
+            color: isSelected ? color : (isDark ? AppTheme.darkBorder : Colors.grey.shade300),
+            width: isSelected ? 2 : 1,
+          ),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              color: isSelected ? color : (isDark ? AppTheme.darkTextPrimary : Colors.grey.shade700),
+              size: 24,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: TextStyle(
+                color: isSelected ? color : (isDark ? AppTheme.darkTextPrimary : Colors.grey.shade700),
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                fontSize: 12,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _GuestCountDialog extends StatefulWidget {
+  final int currentCount;
+
+  const _GuestCountDialog({required this.currentCount});
+
+  @override
+  State<_GuestCountDialog> createState() => _GuestCountDialogState();
+}
+
+class _GuestCountDialogState extends State<_GuestCountDialog> {
+  late int _count;
+
+  @override
+  void initState() {
+    super.initState();
+    _count = widget.currentCount;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      title: const Text('How many guests?'),
+      content: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          IconButton(
+            onPressed: _count > 0 ? () => setState(() => _count--) : null,
+            icon: const Icon(Icons.remove_circle_outline),
+            iconSize: 32,
+          ),
+          Container(
+            width: 80,
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            decoration: BoxDecoration(
+              color: isDark ? AppTheme.darkSurface : Colors.grey.shade100,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(
+              '$_count',
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
+            ),
+          ),
+          IconButton(
+            onPressed: _count < 10 ? () => setState(() => _count++) : null,
+            icon: const Icon(Icons.add_circle_outline),
+            iconSize: 32,
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context, _count),
+          child: const Text('Confirm'),
+        ),
+      ],
     );
   }
 }

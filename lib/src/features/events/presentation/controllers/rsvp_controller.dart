@@ -1,13 +1,15 @@
+import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../data/rsvp_repository.dart';
-import '../domain/rsvp_model.dart';
-import '../domain/notification_prefs_model.dart';
+import '../../data/rsvp_repository.dart';
+import '../../domain/rsvp_model.dart';
+import '../../domain/notification_prefs_model.dart';
+import '../../domain/invite_model.dart';
 
 final rsvpControllerProvider = AsyncNotifierProvider<RSVPController, void>(() {
   return RSVPController();
 });
 
-class RSVPController extends AsyncNotifier<RSVPController> {
+class RSVPController extends AsyncNotifier<void> {
   late final RSVPRepository _repository;
 
   @override
@@ -40,6 +42,10 @@ class RSVPController extends AsyncNotifier<RSVPController> {
     return _repository.getMyRSVPs();
   }
 
+  Future<List<RSVPModel>> getEventRSVPs(String eventId) async {
+    return _repository.getEventRSVPs(eventId);
+  }
+
   Future<NotificationPrefsModel> getNotificationPrefs() async {
     return _repository.getNotificationPrefs();
   }
@@ -49,5 +55,16 @@ class RSVPController extends AsyncNotifier<RSVPController> {
     state = await AsyncValue.guard(() async {
       await _repository.updateNotificationPrefs(prefs);
     });
+  }
+
+  Future<List<InviteModel>> sendInvites(
+    String eventId,
+    List<String> inviteeIds,
+  ) async {
+    return _repository.sendInvites(eventId, inviteeIds);
+  }
+
+  Future<List<RSVPUserModel>> searchUsers(String query) async {
+    return _repository.searchUsers(query);
   }
 }

@@ -1,20 +1,42 @@
-import 'package:freezed_annotation/freezed_annotation.dart';
+class JoinRequestModel {
+  final String id;
+  final String eventId;
+  final String userId;
+  final String name;
+  final String email;
+  final String status;
+  final DateTime? createdAt;
 
-part 'join_request_model.freezed.dart';
-part 'join_request_model.g.dart';
-
-@freezed
-class JoinRequestModel with _$JoinRequestModel {
-  const factory JoinRequestModel({
-    @Default('') String id,
-    @Default('') String eventId,
-    @Default('') String userId,
-    @Default('') String name,
-    @Default('') String email,
-    @Default('pending') String status,
-    DateTime? createdAt,
-  }) = _JoinRequestModel;
+  JoinRequestModel({
+    this.id = '',
+    this.eventId = '',
+    this.userId = '',
+    this.name = '',
+    this.email = '',
+    this.status = 'pending',
+    this.createdAt,
+  });
 
   factory JoinRequestModel.fromJson(Map<String, dynamic> json) =>
-      _$JoinRequestModelFromJson(json);
+      JoinRequestModel(
+        id: json["id"] ?? '',
+        eventId: json["eventId"] ?? '',
+        userId: json["userId"] ?? '',
+        name: json["name"] ?? '',
+        email: json["email"] ?? '',
+        status: json["status"] ?? 'pending',
+        createdAt: json["createdAt"] == null
+            ? null
+            : DateTime.tryParse(json["createdAt"].toString()),
+      );
+
+  Map<String, dynamic> toJson() => {
+        "id": id,
+        "eventId": eventId,
+        "userId": userId,
+        "name": name,
+        "email": email,
+        "status": status,
+        "createdAt": createdAt?.toIso8601String(),
+      };
 }

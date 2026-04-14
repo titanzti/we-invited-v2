@@ -1,5 +1,8 @@
+import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../utils/api_client.dart';
+import '../../../utils/api_response.dart';
 import '../domain/post_model.dart';
 import '../domain/join_request_model.dart';
 import 'join_event_response_dto.dart';
@@ -16,16 +19,19 @@ class PostRepository {
 
   Future<List<PostModel>> getPosts({String? category}) async {
     try {
-      final queryParams = <String, dynamic>{};
-      if (category != null && category.isNotEmpty) {
-        queryParams['category'] = category;
-      }
       final response = await ApiClient.instance.get(
         '/events',
-        queryParameters: queryParams,
+        queryParameters: {
+          if (category != null && category.isNotEmpty) 'category': category,
+        },
       );
-      final data = response.data['data'] as List;
-      return data.map((json) => PostModel.fromJson(json)).toList();
+      final result = ApiResponse<List<PostModel>>.fromJson(
+        response.data,
+        (data) => List<PostModel>.from(
+          (data as List).map((x) => PostModel.fromJson(x)),
+        ),
+      );
+      return result.data ?? [];
     } catch (e) {
       throw Exception('Failed to load events: $e');
     }
@@ -37,8 +43,13 @@ class PostRepository {
         '/events',
         queryParameters: {'q': query},
       );
-      final data = response.data['data'] as List;
-      return data.map((json) => PostModel.fromJson(json)).toList();
+      final result = ApiResponse<List<PostModel>>.fromJson(
+        response.data,
+        (data) => List<PostModel>.from(
+          (data as List).map((x) => PostModel.fromJson(x)),
+        ),
+      );
+      return result.data ?? [];
     } catch (e) {
       throw Exception('Failed to search events: $e');
     }
@@ -65,7 +76,7 @@ class PostRepository {
         if (description != null && description.isNotEmpty) 'description': description,
         if (imageUrl != null && imageUrl.isNotEmpty) 'imageUrl': imageUrl,
         if (startDateTime != null) 'startdateTime': startDateTime.toIso8601String(),
-        if (endDateTime != null) 'endDateTime': endDateTime.toIso8601String(),
+        if (endDateTime != null) 'entdateTime': endDateTime.toIso8601String(),
         if (maxCapacity != null) 'numpeople': maxCapacity.toString(),
         'requiresApproval': requiresApproval,
         if (latitude != null) 'latitude': latitude,
@@ -78,9 +89,26 @@ class PostRepository {
 
   Future<JoinEventResponseDto> joinEvent(String eventId) async {
     try {
+      debugPrint('[joinEvent] POST /events/$eventId/join');
       final response = await ApiClient.instance.post('/events/$eventId/join');
-      return JoinEventResponseDto.fromJson(response.data as Map<String, dynamic>);
+      debugPrint('[joinEvent] statusCode: ${response.statusCode}');
+      final result = ApiResponse<JoinEventResponseDto>.fromJson(
+        response.data,
+        (data) => JoinEventResponseDto.fromJson(data),
+      );
+      return result.data!;
+    } on DioException catch (e) {
+      final responseData = e.response?.data;
+      final serverMsg = responseData is Map ? (responseData['error'] as String?) ?? '' : '';
+      debugPrint('[joinEvent] DioException ${e.response?.statusCode}: $serverMsg');
+
+      if (e.response?.statusCode == 409 && serverMsg.contains('Already')) {
+        return const JoinEventResponseDto(status: 'APPROVED', message: 'You already joined this event');
+      }
+
+      throw Exception(serverMsg.isNotEmpty ? serverMsg : 'Failed to join event');
     } catch (e) {
+      debugPrint('[joinEvent] ERROR: $e');
       throw Exception('Failed to join event: $e');
     }
   }
@@ -88,8 +116,13 @@ class PostRepository {
   Future<List<PostModel>> getMyEvents() async {
     try {
       final response = await ApiClient.instance.get('/events/me');
-      final data = response.data['data'] as List;
-      return data.map((json) => PostModel.fromJson(json)).toList();
+      final result = ApiResponse<List<PostModel>>.fromJson(
+        response.data,
+        (data) => List<PostModel>.from(
+          (data as List).map((x) => PostModel.fromJson(x)),
+        ),
+      );
+      return result.data ?? [];
     } catch (e) {
       throw Exception('Failed to load your events: $e');
     }
@@ -98,8 +131,13 @@ class PostRepository {
   Future<List<JoinRequestModel>> getJoinRequests(String eventId) async {
     try {
       final response = await ApiClient.instance.get('/events/$eventId/requests');
-      final data = response.data['data'] as List;
-      return data.map((json) => JoinRequestModel.fromJson(json as Map<String, dynamic>)).toList();
+      final result = ApiResponse<List<JoinRequestModel>>.fromJson(
+        response.data,
+        (data) => List<JoinRequestModel>.from(
+          (data as List).map((x) => JoinRequestModel.fromJson(x)),
+        ),
+      );
+      return result.data ?? [];
     } catch (e) {
       throw Exception('Failed to load requests: $e');
     }

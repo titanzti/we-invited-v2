@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../utils/api_client.dart';
 import '../domain/user_model.dart';
+import 'auth_response.dart';
 
 part 'auth_repository.g.dart';
 
@@ -39,7 +40,8 @@ class AuthRepository {
     try {
       final response = await _dio.get('/auth/me');
       if (response.statusCode == 200) {
-        return UserModel.fromJson(response.data['user']);
+        final result = AuthMeResponse.fromJson(response.data);
+        return result.user;
       }
     } catch (e) {
       // Token is invalid or expired. Clear it.
@@ -59,11 +61,11 @@ class AuthRepository {
       'name': name,
     });
 
-    if (response.statusCode == 200) {
-      final token = response.data['token'];
-      await ApiClient.storage.write(key: 'jwt_token', value: token);
+    final result = AuthResponse.fromJson(response.data);
+    if (response.statusCode == 200 && result.token != null) {
+      await ApiClient.storage.write(key: 'jwt_token', value: result.token!);
     } else {
-      throw Exception(response.data['error'] ?? 'Registration failed');
+      throw Exception(result.error ?? 'Registration failed');
     }
   }
 
@@ -76,11 +78,11 @@ class AuthRepository {
       'password': password,
     });
 
-    if (response.statusCode == 200) {
-      final token = response.data['token'];
-      await ApiClient.storage.write(key: 'jwt_token', value: token);
+    final result = AuthResponse.fromJson(response.data);
+    if (response.statusCode == 200 && result.token != null) {
+      await ApiClient.storage.write(key: 'jwt_token', value: result.token!);
     } else {
-      throw Exception(response.data['error'] ?? 'Login failed');
+      throw Exception(result.error ?? 'Login failed');
     }
   }
 

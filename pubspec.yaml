@@ -46,9 +46,7 @@ dependencies:
   dio: ^5.7.0
   flutter_secure_storage: ^9.2.2
 
-  # Data Models
-  freezed_annotation: ^2.4.4
-  json_annotation: ^4.9.0
+
 
   # Firebase
   firebase_core: ^3.8.0
@@ -78,10 +76,8 @@ dev_dependencies:
   # rules and activating additional ones.
   flutter_lints: ^5.0.0
   
-  # Code Generation
+  # Code Generation (Riverpod only)
   build_runner: ^2.4.13
-  freezed: ^2.5.7
-  json_serializable: any
   riverpod_generator: ^2.6.2
   integration_test:
     sdk: flutter

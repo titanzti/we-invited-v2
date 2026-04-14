@@ -55,17 +55,25 @@ class AuthRepository {
     required String password,
     required String name,
   }) async {
-    final response = await _dio.post('/auth/register', data: {
-      'email': email,
-      'password': password,
-      'name': name,
-    });
+    try {
+      final response = await _dio.post('/auth/register', data: {
+        'email': email,
+        'password': password,
+        'name': name,
+      });
 
-    final result = AuthResponse.fromJson(response.data);
-    if (response.statusCode == 200 && result.token != null) {
-      await ApiClient.storage.write(key: 'jwt_token', value: result.token!);
-    } else {
-      throw Exception(result.error ?? 'Registration failed');
+      final result = AuthResponse.fromJson(response.data);
+      if (response.statusCode == 200 && result.token != null) {
+        await ApiClient.storage.write(key: 'jwt_token', value: result.token!);
+      } else {
+        throw Exception(result.error ?? 'Registration failed');
+      }
+    } on DioException catch (e) {
+      if (e.response?.data != null) {
+        final result = AuthResponse.fromJson(e.response!.data);
+        throw Exception(result.error ?? 'Registration failed');
+      }
+      throw Exception(e.message ?? 'Registration failed');
     }
   }
 
@@ -73,16 +81,24 @@ class AuthRepository {
     required String email,
     required String password,
   }) async {
-    final response = await _dio.post('/auth/login', data: {
-      'email': email,
-      'password': password,
-    });
+    try {
+      final response = await _dio.post('/auth/login', data: {
+        'email': email,
+        'password': password,
+      });
 
-    final result = AuthResponse.fromJson(response.data);
-    if (response.statusCode == 200 && result.token != null) {
-      await ApiClient.storage.write(key: 'jwt_token', value: result.token!);
-    } else {
-      throw Exception(result.error ?? 'Login failed');
+      final result = AuthResponse.fromJson(response.data);
+      if (response.statusCode == 200 && result.token != null) {
+        await ApiClient.storage.write(key: 'jwt_token', value: result.token!);
+      } else {
+        throw Exception(result.error ?? 'Login failed');
+      }
+    } on DioException catch (e) {
+      if (e.response?.data != null) {
+        final result = AuthResponse.fromJson(e.response!.data);
+        throw Exception(result.error ?? 'Login failed');
+      }
+      throw Exception(e.message ?? 'Login failed');
     }
   }
 

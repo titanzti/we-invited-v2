@@ -150,23 +150,22 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           error: (_, __) => Container(color: isDark ? AppTheme.darkBackground : Colors.grey.shade200, child: Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(Icons.cloud_off, size: 48, color: Colors.grey.shade400), const SizedBox(height: 8), TextButton(onPressed: _onRefresh, child: const Text('Retry'))]))),
         ),
 
-        // Overlay: header
+        // Overlay: header and chips
         Positioned(
           top: 0,
           left: 0,
           right: 0,
           child: SafeArea(
             bottom: false,
-            child: _buildOverlayHeader(isDark),
+            minimum: const EdgeInsets.only(top: 44),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildOverlayHeader(isDark),
+                _buildCategoryChips(isDark),
+              ],
+            ),
           ),
-        ),
-
-        // Overlay: category chips
-        Positioned(
-          top: MediaQuery.of(context).padding.top + (_isSearching ? 130 : 90),
-          left: 0,
-          right: 0,
-          child: _buildCategoryChips(isDark),
         ),
 
         // Selected event card
@@ -252,14 +251,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   // ============== SHARED WIDGETS ==============
 
   Widget _buildOverlayHeader(bool isDark) {
-    return Container(
+    return Padding(
       padding: const EdgeInsets.fromLTRB(24, 12, 24, 12),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [
-          (isDark ? AppTheme.darkBackground : Colors.white).withValues(alpha: 0.95),
-          (isDark ? AppTheme.darkBackground : Colors.white).withValues(alpha: 0),
-        ]),
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,

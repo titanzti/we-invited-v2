@@ -1,8 +1,8 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../utils/api_client.dart';
 import '../domain/post_model.dart';
-import '../domain/join_event_response.dart';
 import '../domain/join_request_model.dart';
+import 'join_event_response_dto.dart';
 
 part 'post_repository.g.dart';
 
@@ -76,10 +76,10 @@ class PostRepository {
     }
   }
 
-  Future<JoinEventResponse> joinEvent(String eventId) async {
+  Future<JoinEventResponseDto> joinEvent(String eventId) async {
     try {
       final response = await ApiClient.instance.post('/events/$eventId/join');
-      return JoinEventResponse.fromJson(response.data as Map<String, dynamic>);
+      return JoinEventResponseDto.fromJson(response.data as Map<String, dynamic>);
     } catch (e) {
       throw Exception('Failed to join event: $e');
     }

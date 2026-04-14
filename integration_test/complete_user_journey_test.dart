@@ -9,7 +9,7 @@ void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   group('Complete User Journey', () {
-    testWidgets('Full flow: Login -> Create Event -> Browse -> View Profile', (tester) async {
+    testWidgets('Full flow: Login -> Browse Feed -> Create Event -> View Profile', (tester) async {
       ApiClient.initialize();
       await ApiClient.storage.deleteAll();
 

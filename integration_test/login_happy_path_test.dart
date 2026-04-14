@@ -4,7 +4,6 @@ import 'package:integration_test/integration_test.dart';
 import 'package:we_invited_v2/main.dart' as app;
 import 'package:we_invited_v2/src/common_widgets/global_premium_widgets.dart';
 import 'package:we_invited_v2/src/utils/api_client.dart';
-import 'package:dio/dio.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();

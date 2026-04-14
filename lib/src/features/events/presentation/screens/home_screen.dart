@@ -81,9 +81,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final feedState = ref.watch(feedControllerProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      body: _isMapView ? _buildMapView(feedState, isDark) : _buildListView(feedState, isDark),
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle(
+        statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+        statusBarBrightness: isDark ? Brightness.dark : Brightness.light,
+        systemStatusBarContrastEnforced: true,
+      ),
+      child: Scaffold(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        body: _isMapView ? _buildMapView(feedState, isDark) : _buildListView(feedState, isDark),
+      ),
     );
   }
 
@@ -157,12 +164,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           right: 0,
           child: SafeArea(
             bottom: false,
-            minimum: const EdgeInsets.only(top: 44),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                _buildOverlayHeader(isDark),
-                _buildCategoryChips(isDark),
+                Padding(
+                  padding: const EdgeInsets.only(top: 44),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _buildOverlayHeader(isDark),
+                      _buildCategoryChips(isDark),
+                    ],
+                  ),
+                ),
               ],
             ),
           ),

@@ -48,15 +48,14 @@ void main() {
       await tester.tap(createButton, warnIfMissed: false);
       await tester.pumpAndSettle(const Duration(seconds: 2));
 
-      // Verify we're on the create event screen - check for form fields instead
+      // Verify we're on the create event screen - check for form fields
       final hasTitleField = find.byType(TextFormField).evaluate().isNotEmpty;
-      final hasLocationField = find.textContaining('Location').evaluate().isNotEmpty ||
-          find.textContaining('location').evaluate().isNotEmpty;
-      
+      final hasLocationField = find.byType(TextFormField).at(1).evaluate().isNotEmpty;
+
       expect(
-        hasTitleField,
+        hasTitleField && hasLocationField,
         isTrue,
-        reason: 'Should show create event screen with form fields',
+        reason: 'Should show create event screen with title and location fields',
       );
 
       // Fill in event details

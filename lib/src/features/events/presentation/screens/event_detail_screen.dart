@@ -134,7 +134,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
         final response = await ref.read(postRepositoryProvider).joinEvent(widget.post.postid);
         if (mounted) {
           HapticFeedback.heavyImpact();
-          final isPending = response['status'] == 'PENDING';
+          final isPending = response.status == 'PENDING';
           setState(() {
             _isJoining = false;
             _hasJoined = true;

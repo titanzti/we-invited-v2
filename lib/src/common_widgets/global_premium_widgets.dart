@@ -25,14 +25,19 @@ class _AnimatedPrimaryButtonState extends State<AnimatedPrimaryButton> {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTapDown: (_) => setState(() => _isPressed = true),
+      onTapDown: (_) {
+        if (widget.isLoading || widget.onPressed == null) return;
+        setState(() => _isPressed = true);
+      },
       onTapUp: (_) {
         setState(() => _isPressed = false);
         if (!widget.isLoading && widget.onPressed != null) {
           widget.onPressed!();
         }
       },
-      onTapCancel: () => setState(() => _isPressed = false),
+      onTapCancel: () {
+        if (_isPressed) setState(() => _isPressed = false);
+      },
       child: AnimatedScale(
         scale: _isPressed ? 0.90 : 1.0,
         duration: const Duration(milliseconds: 150),

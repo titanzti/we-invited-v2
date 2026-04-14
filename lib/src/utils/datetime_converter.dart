@@ -18,9 +18,13 @@ class DateTimeConverter implements JsonConverter<DateTime?, dynamic> {
 
     if (json is Map<String, dynamic>) {
       if (json.containsKey('_seconds')) {
-        return DateTime.fromMillisecondsSinceEpoch(
-          (json['_seconds'] as int) * 1000,
-        );
+        final rawSeconds = json['_seconds'];
+        if (rawSeconds is num) {
+          return DateTime.fromMillisecondsSinceEpoch(
+            (rawSeconds * 1000).round(),
+            isUtc: true,
+          );
+        }
       }
     }
 
@@ -29,6 +33,6 @@ class DateTimeConverter implements JsonConverter<DateTime?, dynamic> {
 
   @override
   dynamic toJson(DateTime? object) {
-    return object?.toIso8601String();
+    return object?.toUtc().toIso8601String();
   }
 }

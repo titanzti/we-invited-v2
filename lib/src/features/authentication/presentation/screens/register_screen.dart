@@ -107,9 +107,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     prefixIcon: Icon(Icons.email_outlined),
                   ),
                   validator: (value) {
-                    if (value == null || value.isEmpty) return 'Please enter email';
-                    final emailRegex = RegExp(r'^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$');
-                    if (!emailRegex.hasMatch(value)) return 'Please enter a valid email';
+                    final email = value?.trim() ?? '';
+                    if (email.isEmpty) return 'Please enter email';
+                    final emailRegex = RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$');
+                    if (!emailRegex.hasMatch(email)) return 'Please enter a valid email';
                     return null;
                   },
                   enabled: !isLoading,

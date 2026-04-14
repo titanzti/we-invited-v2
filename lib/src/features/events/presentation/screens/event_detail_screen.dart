@@ -134,7 +134,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
         final response = await ref.read(postRepositoryProvider).joinEvent(widget.post.postid);
         if (mounted) {
           HapticFeedback.heavyImpact();
-          final isPending = response['data']?['status'] == 'PENDING';
+          final isPending = response['status'] == 'PENDING';
           setState(() {
             _isJoining = false;
             _hasJoined = true;
@@ -155,7 +155,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
   }
 
   @override
-  Widget build(BuildContext context, ) {
+  Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final imageUrl = widget.post.image.isNotEmpty
         ? widget.post.image

@@ -63,7 +63,7 @@ class PostRepository {
         if (description != null && description.isNotEmpty) 'description': description,
         if (imageUrl != null && imageUrl.isNotEmpty) 'imageUrl': imageUrl,
         if (startDateTime != null) 'startdateTime': startDateTime.toIso8601String(),
-        if (endDateTime != null) 'entdateTime': endDateTime.toIso8601String(),
+        if (endDateTime != null) 'endDateTime': endDateTime.toIso8601String(),
         if (maxCapacity != null) 'numpeople': maxCapacity.toString(),
         'requiresApproval': requiresApproval,
         if (latitude != null) 'latitude': latitude,
@@ -89,7 +89,7 @@ class PostRepository {
       final data = response.data['data'] as List;
       return data.map((json) => PostModel.fromJson(json)).toList();
     } catch (e) {
-      return [];
+      throw Exception('Failed to load your events: $e');
     }
   }
 

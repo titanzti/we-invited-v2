@@ -9,6 +9,7 @@ import '../../../../utils/snackbar_utils.dart';
 
 import '../../../../common_widgets/global_premium_widgets.dart';
 import '../../../../exceptions/app_exception.dart'; // Clean Architecture Error Handler
+import 'package:dio/dio.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -34,11 +35,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         _passwordController.text,
       );
       // Success router redirect handles by app_router automatically!
-    } catch (e) {
+    } on DioException catch (e) {
       if (!mounted) return;
-      
+      if (e.response?.statusCode == 401) {
+        SnackBarUtils.showError(context, 'Invalid email or password');
+        return;
+      }
       final mappedException = AppException.fromDio(e);
       SnackBarUtils.showError(context, mappedException.message);
+    } catch (e) {
+      if (!mounted) return;
+      SnackBarUtils.showError(context, 'Something went wrong. Please try again.');
     }
   }
 
@@ -88,9 +95,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     prefixIcon: Icon(Icons.email_outlined),
                   ),
                   validator: (value) {
-                    if (value == null || value.isEmpty) return 'Please enter email';
-                    final emailRegex = RegExp(r'^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$');
-                    if (!emailRegex.hasMatch(value)) return 'Please enter a valid email';
+                    final email = value?.trim() ?? '';
+                    if (email.isEmpty) return 'Please enter email';
+                    final emailRegex = RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$');
+                    if (!emailRegex.hasMatch(email)) return 'Please enter a valid email';
                     return null;
                   },
                   enabled: !isLoading,

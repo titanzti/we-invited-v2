@@ -109,34 +109,39 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               children: [
                 TileLayer(urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png', userAgentPackageName: 'com.weinvited.app'),
                 MarkerLayer(
-                  markers: eventsWithCoords.map((post) {
-                    final isSelected = _selectedMapEvent?.postid == post.postid;
-                    return Marker(
-                      point: LatLng(post.latitude!, post.longitude!),
-                      width: isSelected ? 52 : 44,
-                      height: isSelected ? 52 : 44,
-                      child: GestureDetector(
-                        onTap: () {
-                          HapticFeedback.lightImpact();
-                          setState(() => _selectedMapEvent = post);
-                        },
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 200),
-                          decoration: BoxDecoration(
-                            color: isSelected ? AppTheme.primaryBlue : Colors.white,
-                            shape: BoxShape.circle,
-                            border: Border.all(color: AppTheme.primaryBlue, width: 2.5),
-                            boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 8, offset: const Offset(0, 3))],
-                          ),
-                          child: Icon(
-                            _categoryIcons[post.category] ?? Icons.event,
-                            color: isSelected ? Colors.white : AppTheme.primaryBlue,
-                            size: isSelected ? 24 : 20,
-                          ),
-                        ),
-                      ),
-                    );
-                  }).toList(),
+                  markers: [
+                    for (final post in eventsWithCoords)
+                      if (post.latitude case final lat?)
+                        if (post.longitude case final lng?)
+                          () {
+                            final isSelected = _selectedMapEvent?.postid == post.postid;
+                            return Marker(
+                              point: LatLng(lat, lng),
+                              width: isSelected ? 52 : 44,
+                              height: isSelected ? 52 : 44,
+                              child: GestureDetector(
+                                onTap: () {
+                                  HapticFeedback.lightImpact();
+                                  setState(() => _selectedMapEvent = post);
+                                },
+                                child: AnimatedContainer(
+                                  duration: const Duration(milliseconds: 200),
+                                  decoration: BoxDecoration(
+                                    color: isSelected ? AppTheme.primaryBlue : Colors.white,
+                                    shape: BoxShape.circle,
+                                    border: Border.all(color: AppTheme.primaryBlue, width: 2.5),
+                                    boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 8, offset: const Offset(0, 3))],
+                                  ),
+                                  child: Icon(
+                                    _categoryIcons[post.category] ?? Icons.event,
+                                    color: isSelected ? Colors.white : AppTheme.primaryBlue,
+                                    size: isSelected ? 24 : 20,
+                                  ),
+                                ),
+                              ),
+                            );
+                          }(),
+                  ],
                 ),
               ],
             );

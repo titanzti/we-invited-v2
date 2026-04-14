@@ -1,9 +1,6 @@
-import 'package:freezed_annotation/freezed_annotation.dart';
-
-class DateTimeConverter implements JsonConverter<DateTime?, dynamic> {
+class DateTimeConverter {
   const DateTimeConverter();
 
-  @override
   DateTime? fromJson(dynamic json) {
     if (json == null) return null;
     if (json is DateTime) return json;
@@ -31,7 +28,6 @@ class DateTimeConverter implements JsonConverter<DateTime?, dynamic> {
     return null;
   }
 
-  @override
   dynamic toJson(DateTime? object) {
     return object?.toUtc().toIso8601String();
   }

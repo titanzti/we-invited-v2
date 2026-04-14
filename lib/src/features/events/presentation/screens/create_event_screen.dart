@@ -33,14 +33,14 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
   bool _requiresApproval = false;
   LatLng? _selectedLocation;
 
-  final List<Map<String, dynamic>> _categories = [
-    {'name': 'Party', 'icon': Icons.celebration},
-    {'name': 'Networking', 'icon': Icons.people},
-    {'name': 'Dinner', 'icon': Icons.restaurant},
-    {'name': 'Sports', 'icon': Icons.sports_soccer},
-    {'name': 'Gaming', 'icon': Icons.sports_esports},
-    {'name': 'Music', 'icon': Icons.music_note},
-    {'name': 'Art', 'icon': Icons.palette},
+  final List<({String name, IconData icon})> _categories = [
+    (name: 'Party', icon: Icons.celebration),
+    (name: 'Networking', icon: Icons.people),
+    (name: 'Dinner', icon: Icons.restaurant),
+    (name: 'Sports', icon: Icons.sports_soccer),
+    (name: 'Gaming', icon: Icons.sports_esports),
+    (name: 'Music', icon: Icons.music_note),
+    (name: 'Art', icon: Icons.palette),
   ];
 
   @override
@@ -204,11 +204,11 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                           separatorBuilder: (_, __) => const SizedBox(width: 8),
                           itemBuilder: (context, index) {
                             final cat = _categories[index];
-                            final isSelected = cat['name'] == _selectedCategory;
+                            final isSelected = cat.name == _selectedCategory;
                             return GestureDetector(
                               onTap: () {
                                 HapticFeedback.selectionClick();
-                                setState(() => _selectedCategory = cat['name']);
+                                setState(() => _selectedCategory = cat.name);
                               },
                               child: AnimatedContainer(
                                 duration: const Duration(milliseconds: 200),
@@ -220,9 +220,9 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                                 ),
                                 child: Row(
                                   children: [
-                                    Icon(cat['icon'] as IconData, size: 16, color: isSelected ? Colors.white : AppTheme.textMetadata),
+                                    Icon(cat.icon, size: 16, color: isSelected ? Colors.white : AppTheme.textMetadata),
                                     const SizedBox(width: 6),
-                                    Text(cat['name'], style: TextStyle(color: isSelected ? Colors.white : (isDark ? AppTheme.darkTextPrimary : AppTheme.textBody), fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500, fontSize: 13)),
+                                    Text(cat.name, style: TextStyle(color: isSelected ? Colors.white : (isDark ? AppTheme.darkTextPrimary : AppTheme.textBody), fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500, fontSize: 13)),
                                   ],
                                 ),
                               ),

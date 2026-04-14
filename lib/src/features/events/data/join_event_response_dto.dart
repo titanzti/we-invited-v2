@@ -1,24 +1,20 @@
-/// DTO for join event API response (transport layer)
 class JoinEventResponseDto {
   final String status;
   final String? message;
 
   const JoinEventResponseDto({
-    required this.status,
+    this.status = '',
     this.message,
   });
 
-  factory JoinEventResponseDto.fromJson(Map<String, dynamic> json) {
-    return JoinEventResponseDto(
-      status: json['status'] as String? ?? '',
-      message: json['message'] as String?,
-    );
-  }
+  factory JoinEventResponseDto.fromJson(Map<String, dynamic> json) =>
+      JoinEventResponseDto(
+        status: json["status"] ?? '',
+        message: json["message"],
+      );
 
-  Map<String, dynamic> toJson() {
-    return {
-      'status': status,
-      if (message != null) 'message': message,
-    };
-  }
+  Map<String, dynamic> toJson() => {
+        "status": status,
+        "message": message,
+      };
 }

@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../utils/api_client.dart';
 import '../domain/user_model.dart';
+import 'auth_response.dart';
 
 part 'auth_repository.g.dart';
 
@@ -39,7 +40,8 @@ class AuthRepository {
     try {
       final response = await _dio.get('/auth/me');
       if (response.statusCode == 200) {
-        return UserModel.fromJson(response.data['user']);
+        final result = AuthMeResponse.fromJson(response.data);
+        return result.user;
       }
     } catch (e) {
       // Token is invalid or expired. Clear it.
@@ -53,17 +55,25 @@ class AuthRepository {
     required String password,
     required String name,
   }) async {
-    final response = await _dio.post('/auth/register', data: {
-      'email': email,
-      'password': password,
-      'name': name,
-    });
+    try {
+      final response = await _dio.post('/auth/register', data: {
+        'email': email,
+        'password': password,
+        'name': name,
+      });
 
-    if (response.statusCode == 200) {
-      final token = response.data['token'];
-      await ApiClient.storage.write(key: 'jwt_token', value: token);
-    } else {
-      throw Exception(response.data['error'] ?? 'Registration failed');
+      final result = AuthResponse.fromJson(response.data);
+      if (response.statusCode == 200 && result.token != null) {
+        await ApiClient.storage.write(key: 'jwt_token', value: result.token!);
+      } else {
+        throw Exception(result.error ?? 'Registration failed');
+      }
+    } on DioException catch (e) {
+      if (e.response?.data != null) {
+        final result = AuthResponse.fromJson(e.response!.data);
+        throw Exception(result.error ?? 'Registration failed');
+      }
+      throw Exception(e.message ?? 'Registration failed');
     }
   }
 
@@ -71,16 +81,24 @@ class AuthRepository {
     required String email,
     required String password,
   }) async {
-    final response = await _dio.post('/auth/login', data: {
-      'email': email,
-      'password': password,
-    });
+    try {
+      final response = await _dio.post('/auth/login', data: {
+        'email': email,
+        'password': password,
+      });
 
-    if (response.statusCode == 200) {
-      final token = response.data['token'];
-      await ApiClient.storage.write(key: 'jwt_token', value: token);
-    } else {
-      throw Exception(response.data['error'] ?? 'Login failed');
+      final result = AuthResponse.fromJson(response.data);
+      if (response.statusCode == 200 && result.token != null) {
+        await ApiClient.storage.write(key: 'jwt_token', value: result.token!);
+      } else {
+        throw Exception(result.error ?? 'Login failed');
+      }
+    } on DioException catch (e) {
+      if (e.response?.data != null) {
+        final result = AuthResponse.fromJson(e.response!.data);
+        throw Exception(result.error ?? 'Login failed');
+      }
+      throw Exception(e.message ?? 'Login failed');
     }
   }
 

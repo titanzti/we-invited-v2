@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../constants/app_theme.dart';
 import '../controllers/auth_controller.dart';
 import '../../data/auth_repository.dart';
 import '../../../events/data/post_repository.dart';
 import '../../../events/domain/post_model.dart';
+import '../../../events/presentation/screens/my_rsvps_screen.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -22,7 +24,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTicker
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
   }
 
   @override
@@ -225,6 +227,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTicker
                   labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                   tabs: const [
                     Tab(text: 'My Events'),
+                    Tab(text: 'My RSVPs'),
                     Tab(text: 'Settings'),
                   ],
                 ),
@@ -239,7 +242,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTicker
             // Tab 1: My Events from API
             _MyEventsTab(),
 
-            // Tab 2: Settings
+            // Tab 2: My RSVPs
+            const MyRSVPsScreen(),
+
+            // Tab 3: Settings
             _SettingsTab(),
           ],
         ),
@@ -376,6 +382,7 @@ class _SettingsTab extends StatelessWidget {
           title: 'Notifications',
           subtitle: 'Event reminders, messages',
           isDark: isDark,
+          onTap: () => context.push('/profile/notifications'),
         ),
         _settingsTile(
           context,
@@ -408,6 +415,7 @@ class _SettingsTab extends StatelessWidget {
     required String title,
     required String subtitle,
     required bool isDark,
+    VoidCallback? onTap,
   }) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -432,6 +440,7 @@ class _SettingsTab extends StatelessWidget {
         trailing: Icon(Icons.chevron_right, color: Colors.grey.shade400),
         onTap: () {
           HapticFeedback.selectionClick();
+          onTap?.call();
         },
       ),
     );

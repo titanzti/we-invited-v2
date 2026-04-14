@@ -5,6 +5,9 @@ import 'package:go_router/go_router.dart';
 import '../features/events/presentation/screens/home_screen.dart';
 import '../features/events/presentation/screens/event_detail_screen.dart';
 import '../features/events/presentation/screens/create_event_screen.dart';
+import '../features/events/presentation/screens/guest_list_screen.dart';
+import '../features/events/presentation/screens/invite_users_screen.dart';
+import '../features/events/presentation/screens/notification_settings_screen.dart';
 import '../features/events/domain/post_model.dart';
 import '../features/authentication/presentation/screens/login_screen.dart';
 import '../features/authentication/presentation/screens/register_screen.dart';
@@ -85,6 +88,36 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                       }
                       return EventDetailScreen(post: post);
                     },
+                    routes: [
+                      GoRoute(
+                        path: 'guests',
+                        parentNavigatorKey: _rootNavigatorKey,
+                        builder: (context, state) {
+                          final post = state.extra as PostModel?;
+                          if (post == null) {
+                            return const Scaffold(body: Center(child: Text('Event not found!')));
+                          }
+                          return GuestListScreen(
+                            eventId: post.postid,
+                            eventTitle: post.name,
+                          );
+                        },
+                      ),
+                      GoRoute(
+                        path: 'invite',
+                        parentNavigatorKey: _rootNavigatorKey,
+                        builder: (context, state) {
+                          final post = state.extra as PostModel?;
+                          if (post == null) {
+                            return const Scaffold(body: Center(child: Text('Event not found!')));
+                          }
+                          return InviteUsersScreen(
+                            eventId: post.postid,
+                            eventTitle: post.name,
+                          );
+                        },
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -109,6 +142,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: '/profile',
                 builder: (context, state) => const ProfileScreen(),
+                routes: [
+                  GoRoute(
+                    path: 'notifications',
+                    parentNavigatorKey: _rootNavigatorKey,
+                    builder: (context, state) => const NotificationSettingsScreen(),
+                  ),
+                ],
               ),
             ],
           ),

@@ -16,8 +16,8 @@ void main() {
     // For a complex routing app, just proving that it boots without throwing exceptions
     // is a valid baseline smoke test.
     
-    // We let the frame trigger
-    await tester.pumpAndSettle();
+    // We let the frame trigger without waiting for infinite animations
+    await tester.pump(const Duration(seconds: 1));
     
     // This expects at least the Material Layer to be alive
     expect(find.byType(MyApp), findsOneWidget);

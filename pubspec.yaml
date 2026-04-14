@@ -83,6 +83,8 @@ dev_dependencies:
   freezed: ^2.5.7
   json_serializable: any
   riverpod_generator: ^2.6.2
+  integration_test:
+    sdk: flutter
   
   # Lints
 

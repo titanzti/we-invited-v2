@@ -24,14 +24,21 @@ void main() {
 
       final mappedUser = UserModel.fromJson(elysiaResponse['user']!);
       
-      expect(mappedUser.uid, 'abc-123-uuid');
-      expect(mappedUser.email, 'sit@example.com');
-      expect(mappedUser.name, 'SIT Tester');
+      expect(
+        mappedUser,
+        isA<UserModel>()
+            .having((u) => u.uid, 'uid', 'abc-123-uuid')
+            .having((u) => u.email, 'email', 'sit@example.com')
+            .having((u) => u.name, 'name', 'SIT Tester'),
+      );
     });
 
     test('AuthRepository expects 200 on /auth/me for Token Validation', () async {
       // Demonstrates configuration is correct for E2E
-      expect(mockDio.options.baseUrl, 'http://localhost:3000');
+      expect(
+        mockDio.options,
+        isA<BaseOptions>().having((o) => o.baseUrl, 'baseUrl', 'http://localhost:3000'),
+      );
     });
   });
 }

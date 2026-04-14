@@ -1,6 +1,8 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../utils/api_client.dart';
 import '../domain/post_model.dart';
+import '../domain/join_event_response.dart';
+import '../domain/join_request_model.dart';
 
 part 'post_repository.g.dart';
 
@@ -74,10 +76,10 @@ class PostRepository {
     }
   }
 
-  Future<Map<String, dynamic>> joinEvent(String eventId) async {
+  Future<JoinEventResponse> joinEvent(String eventId) async {
     try {
       final response = await ApiClient.instance.post('/events/$eventId/join');
-      return response.data as Map<String, dynamic>;
+      return JoinEventResponse.fromJson(response.data as Map<String, dynamic>);
     } catch (e) {
       throw Exception('Failed to join event: $e');
     }
@@ -93,10 +95,11 @@ class PostRepository {
     }
   }
 
-  Future<List<Map<String, dynamic>>> getJoinRequests(String eventId) async {
+  Future<List<JoinRequestModel>> getJoinRequests(String eventId) async {
     try {
       final response = await ApiClient.instance.get('/events/$eventId/requests');
-      return (response.data['data'] as List).cast<Map<String, dynamic>>();
+      final data = response.data['data'] as List;
+      return data.map((json) => JoinRequestModel.fromJson(json as Map<String, dynamic>)).toList();
     } catch (e) {
       throw Exception('Failed to load requests: $e');
     }

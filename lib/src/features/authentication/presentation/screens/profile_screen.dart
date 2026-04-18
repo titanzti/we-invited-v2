@@ -29,6 +29,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with TickerProvid
   late TabController _tabController;
   late AnimationController _avatarController;
   late AnimationController _statsController;
+  late Future<List<int>> _statsFuture;
 
   @override
   void initState() {
@@ -43,6 +44,17 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with TickerProvid
       vsync: this,
     )..forward();
   }
+
+  void _initStatsIfNeeded(WidgetRef ref) {
+    // Called on first build; safe to call repeatedly — only initializes once.
+    // ignore: invalid_use_of_protected_member
+    if (!_statsFutureInitialized) {
+      _statsFutureInitialized = true;
+      _statsFuture = _loadStats(ref);
+    }
+  }
+
+  bool _statsFutureInitialized = false;
 
   @override
   void dispose() {
@@ -182,6 +194,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with TickerProvid
     final user = authState.value;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
+    // Initialize the stats future once (never on rebuild)
+    _initStatsIfNeeded(ref);
+
+    // Dynamic expandedHeight: ~38 % of screen height, clamped between 300–400 dp
+    final expandedHeight = (MediaQuery.sizeOf(context).height * 0.38).clamp(300.0, 400.0);
+
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF09090B) : const Color(0xFFF8FAFC),
       body: NestedScrollView(
@@ -190,7 +208,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with TickerProvid
           return [
             // Ultra Modern Hero Header
             SliverAppBar(
-              expandedHeight: 330,
+              expandedHeight: expandedHeight,
               pinned: true,
               stretch: true,
               backgroundColor: isDark ? const Color(0xFF09090B) : const Color(0xFFF8FAFC),
@@ -273,9 +291,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with TickerProvid
             ),
           ),
         ),
+        // Pre-baked purple orb (cheaper than BackdropFilter blur)
         Positioned(
-          bottom: 0,
-          left: -100,
+          bottom: -80,
+          left: -120,
           child: Container(
             width: 350,
             height: 350,
@@ -283,18 +302,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with TickerProvid
               shape: BoxShape.circle,
               gradient: RadialGradient(
                 colors: [
-                  const Color(0xFF8B5CF6).withValues(alpha: isDark ? 0.3 : 0.15),
+                  const Color(0xFF8B5CF6).withValues(alpha: isDark ? 0.22 : 0.12),
                   const Color(0xFF8B5CF6).withValues(alpha: 0.0),
                 ],
+                stops: const [0.0, 1.0],
               ),
             ),
           ),
-        ),
-        
-        // Massive glass blur over the orbs
-        BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 70, sigmaY: 70),
-          child: Container(color: Colors.transparent),
         ),
 
         // Settings / Logout at very top right
@@ -441,13 +455,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with TickerProvid
               ),
               const SizedBox(height: 24), // Push stats down a bit
               
-              // Direct inline stats powered by FadeTransition
+              // Stat row: use the cached _statsFuture
               FadeTransition(
                 opacity: _statsController,
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 48),
                   child: FutureBuilder<List<int>>(
-                    future: _loadStats(ref),
+                    future: _statsFuture,
                     builder: (context, snapshot) {
                       final counts = snapshot.data ?? [0, 0, 0];
                       return Row(

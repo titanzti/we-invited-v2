@@ -1,14 +1,26 @@
+// ignore_for_file: avoid_print
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:we_invited_v2/main.dart' as app;
 import 'package:we_invited_v2/src/common_widgets/global_premium_widgets.dart';
 import 'package:we_invited_v2/src/utils/api_client.dart';
-import 'package:we_invited_v2/src/features/authentication/data/auth_repository.dart';
-import 'package:we_invited_v2/src/features/events/data/post_repository.dart';
-import 'package:dio/dio.dart';
 
 /// This test creates an event with User A, then logs in as User B and joins the event
+Future<void> pumpUntilFound(
+  WidgetTester tester,
+  Finder finder, {
+  Duration timeout = const Duration(seconds: 5),
+  Duration interval = const Duration(milliseconds: 100),
+}) async {
+  final deadline = DateTime.now().add(timeout);
+  while (DateTime.now().isBefore(deadline)) {
+    await tester.pump(interval);
+    if (finder.evaluate().isNotEmpty) return;
+  }
+  throw TestFailure('pumpUntilFound timed out waiting for: $finder');
+}
+
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
@@ -25,10 +37,7 @@ void main() {
       app.main();
       
       // Wait for Login Screen
-      for (int i = 0; i < 50; i++) {
-        await tester.pump(const Duration(milliseconds: 100));
-        if (find.text('Welcome\nBack!').evaluate().isNotEmpty) break;
-      }
+      await pumpUntilFound(tester, find.text('Welcome\nBack!'), timeout: const Duration(seconds: 5));
 
       // Navigate to Register screen
       await tester.tap(find.text('Sign Up'));
@@ -54,10 +63,7 @@ void main() {
       await tester.pump(const Duration(seconds: 2));
 
       // Wait for navigation to Home
-      for (int i = 0; i < 50; i++) {
-        await tester.pump(const Duration(milliseconds: 100));
-        if (find.text('Discover').evaluate().isNotEmpty) break;
-      }
+      await pumpUntilFound(tester, find.text('Discover'), timeout: const Duration(seconds: 3));
 
       expect(find.text('Discover'), findsOneWidget);
       print('✅ User A registered successfully: $userAEmail');
@@ -116,23 +122,20 @@ void main() {
       if (profileNav.evaluate().isNotEmpty) {
         await tester.tap(profileNav);
       } else {
-        // Fallback
         await tester.tap(find.text('Profile'));
       }
       await tester.pumpAndSettle();
 
-      // Find and tap logout button
-      final logoutButton = find.text('Logout');
-      if (logoutButton.evaluate().isNotEmpty) {
-        await tester.tap(logoutButton);
-        await tester.pumpAndSettle();
-      }
+      // Tap the logout icon (profile uses icon-only _buildGlassButton)
+      await tester.tap(find.byIcon(Icons.logout_rounded));
+      await tester.pumpAndSettle();
+
+      // Confirmation sheet appears — tap 'Sign Out'
+      await tester.tap(find.text('Sign Out'));
+      await tester.pumpAndSettle();
 
       // Wait for navigation back to Login
-      for (int i = 0; i < 50; i++) {
-        await tester.pump(const Duration(milliseconds: 100));
-        if (find.text('Welcome\nBack!').evaluate().isNotEmpty) break;
-      }
+      await pumpUntilFound(tester, find.text('Welcome\nBack!'), timeout: const Duration(seconds: 5));
 
       expect(find.text('Welcome\nBack!'), findsOneWidget);
       print('✅ User A logged out');
@@ -163,10 +166,7 @@ void main() {
       await tester.pump(const Duration(seconds: 2));
 
       // Wait for Home screen
-      for (int i = 0; i < 50; i++) {
-        await tester.pump(const Duration(milliseconds: 100));
-        if (find.text('Discover').evaluate().isNotEmpty) break;
-      }
+      await pumpUntilFound(tester, find.text('Discover'), timeout: const Duration(seconds: 5));
 
       expect(find.text('Discover'), findsOneWidget);
       print('✅ User B logged in: $userBEmail');
@@ -179,8 +179,6 @@ void main() {
 
       // Search for the event by title
       // First, try to find it in the feed by scrolling
-      bool foundEvent = false;
-      
       // Try using search if available
       final searchIcon = find.byKey(const ValueKey('search_toggle_fab'));
       if (searchIcon.evaluate().isNotEmpty) {
@@ -195,8 +193,7 @@ void main() {
       // Look for the event card
       final eventCard = find.textContaining('Test Event by User A');
       if (eventCard.evaluate().isNotEmpty) {
-        print('✅ Found event in feed');
-        foundEvent = true;
+        debugPrint('✅ Found event in feed');
         
         // Tap on the event card
         await tester.tap(eventCard.first);
@@ -227,14 +224,15 @@ void main() {
           await tester.pump(const Duration(seconds: 2));
 
           // Wait for success message
-          for (int i = 0; i < 50; i++) {
-            await tester.pump(const Duration(milliseconds: 100));
-            if (find.textContaining("You're in!").evaluate().isNotEmpty ||
-                find.textContaining('Request sent').evaluate().isNotEmpty ||
-                find.textContaining('joined').evaluate().isNotEmpty) {
-              break;
-            }
-          }
+          await pumpUntilFound(
+            tester,
+            find.byWidgetPredicate((w) =>
+                w is Text &&
+                (w.data?.contains("You're in!") == true ||
+                    w.data?.contains('Request sent') == true ||
+                    w.data?.contains('joined') == true)),
+            timeout: const Duration(seconds: 5),
+          );
 
           // Verify join was successful
           final hasSuccessMsg = find.textContaining("You're in!").evaluate().isNotEmpty ||
@@ -249,7 +247,7 @@ void main() {
 
           print('✅ User B successfully joined User A\'s event!');
         } else {
-          print('⚠️  Join button not found - event might already be joined or not joinable');
+          fail('Join button not found — expected to find "Join Event", "Request to Join", or "Join" to successfully join or request to join the event');
         }
       } else {
         print('⚠️  Event not found in feed - it might be filtered or not visible');

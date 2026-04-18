@@ -8,11 +8,14 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../constants/app_theme.dart';
 import '../controllers/auth_controller.dart';
 import '../../data/auth_repository.dart';
+import '../../domain/user_model.dart';
 import '../../../events/data/post_repository.dart';
 import '../../../events/domain/post_model.dart';
 import '../../../events/presentation/screens/my_rsvps_screen.dart';
 import '../../../events/presentation/screens/my_invites_screen.dart';
+import '../../../../common_widgets/premium_post_card.dart';
 import '../../../../constants/theme_provider.dart';
+import '../../../../exceptions/app_exception.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -107,6 +110,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTicker
     }
   }
 
+  String _getUserInitials(UserModel? user) {
+    if (user == null) return 'U';
+    final name = user.name;
+    if (name == null || name.isEmpty) return 'U';
+    return name[0].toUpperCase();
+  }
+
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authStateProvider);
@@ -178,7 +188,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTicker
                               shape: BoxShape.circle,
                               boxShadow: PremiumShadows.softCard,
                             ),
-                            child: user?.profilePhoto != null && user!.profilePhoto!.isNotEmpty
+                            child: user != null && user.profilePhoto != null && user.profilePhoto!.isNotEmpty
                                 ? CircleAvatar(
                                     radius: 40,
                                     backgroundImage: CachedNetworkImageProvider(user.profilePhoto!),
@@ -187,7 +197,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTicker
                                     radius: 40,
                                     backgroundColor: AppTheme.primaryBlue.withValues(alpha: 0.15),
                                     child: Text(
-                                      (user?.name ?? '').isNotEmpty ? (user?.name ?? 'U')[0].toUpperCase() : 'U',
+                                      _getUserInitials(user),
                                       style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: AppTheme.primaryBlue),
                                     ),
                                   ),
@@ -287,14 +297,18 @@ class _MyEventsTabState extends ConsumerState<_MyEventsTab> {
       final events = await ref.read(postRepositoryProvider).getMyEvents();
       if (mounted) setState(() { _events = events; _isLoading = false; });
     } catch (e) {
-      if (mounted) setState(() { _error = 'Failed to load events'; _isLoading = false; });
+      if (mounted) {
+        // Extract user-friendly error message from AppException
+        final errorMessage = e is AppException 
+            ? e.message 
+            : 'Failed to load events. Please try again.';
+        setState(() { _error = errorMessage; _isLoading = false; });
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     if (_isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -342,79 +356,13 @@ class _MyEventsTabState extends ConsumerState<_MyEventsTab> {
         itemCount: _events.length,
         itemBuilder: (context, index) {
           final event = _events[index];
-          return GestureDetector(
-            onTap: () {
-              HapticFeedback.lightImpact();
-              context.push('/feed/event', extra: event);
-            },
-            child: Container(
-              margin: const EdgeInsets.only(bottom: 16),
-              decoration: BoxDecoration(
-                color: isDark ? AppTheme.darkSurface : Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: isDark ? null : PremiumShadows.softCard,
-                border: isDark ? Border.all(color: AppTheme.darkBorder) : null,
-              ),
-              clipBehavior: Clip.antiAlias,
-              child: Row(
-                children: [
-                  SizedBox(
-                    width: 80,
-                    height: 80,
-                    child: event.image.isNotEmpty
-                        ? CachedNetworkImage(
-                            imageUrl: event.image,
-                            fit: BoxFit.cover,
-                            placeholder: (_, __) => Container(color: AppTheme.primaryBlue.withValues(alpha: 0.1)),
-                            errorWidget: (_, __, ___) => Container(
-                              color: AppTheme.primaryBlue.withValues(alpha: 0.1),
-                              child: const Icon(Icons.event, color: AppTheme.primaryBlue),
-                            ),
-                          )
-                        : Container(
-                            color: AppTheme.primaryBlue.withValues(alpha: 0.1),
-                            child: const Icon(Icons.event, color: AppTheme.primaryBlue),
-                          ),
-                  ),
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.all(14),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            event.name.isNotEmpty ? event.name : 'Untitled',
-                            style: Theme.of(context).textTheme.titleMedium?.copyWith(fontSize: 15),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          const SizedBox(height: 4),
-                          Row(
-                            children: [
-                              Icon(Icons.location_on_outlined, size: 13, color: Colors.grey.shade500),
-                              const SizedBox(width: 3),
-                              Expanded(
-                                child: Text(
-                                  event.place.isNotEmpty ? event.place : 'No location',
-                                  style: TextStyle(fontSize: 13, color: Colors.grey.shade500),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(right: 14),
-                    child: Icon(Icons.chevron_right, color: Colors.grey.shade400),
-                  ),
-                ],
-              ),
-            ),
-          ).animate().fade(delay: Duration(milliseconds: 80 * index)).slideY(begin: 0.05);
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 16),
+            child: PremiumPostCard(post: event)
+                .animate()
+                .fade(delay: Duration(milliseconds: 80 * index))
+                .slideY(begin: 0.05),
+          );
         },
       ),
     );

@@ -14,6 +14,7 @@ import '../../data/post_repository.dart';
 import '../../../../constants/app_theme.dart';
 import '../../../../common_widgets/global_premium_widgets.dart';
 import '../../domain/post_model.dart';
+import '../../../../constants/app_constants.dart';
 
 class EditEventScreen extends ConsumerStatefulWidget {
   final PostModel post;
@@ -38,6 +39,8 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
   bool _requiresApproval = false;
   LatLng? _selectedLocation;
   File? _pickedImage;
+  bool _hasUnsavedChanges = false;
+  bool _isSubmitting = false; // Prevent double submission
 
   final List<({String name, IconData icon})> _categories = [
     (name: 'Party', icon: Icons.celebration),
@@ -56,8 +59,8 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
     _nameController.text = post.name;
     _placeController.text = post.place;
     _descController.text = post.description;
-    _capacityController.text = post.numpeople;
-    _selectedCategory = post.category;
+    _capacityController.text = post.numpeople.isNotEmpty ? post.numpeople : '';
+    _selectedCategory = post.category.isNotEmpty ? post.category : 'Party';
     _startDate = post.startdateTime;
     _startTime = post.startdateTime != null ? TimeOfDay.fromDateTime(post.startdateTime!) : null;
     _endDate = post.entdateTime;
@@ -67,10 +70,26 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
     if (post.latitude != null && post.longitude != null) {
       _selectedLocation = LatLng(post.latitude!, post.longitude!);
     }
+    
+    // Add listeners to track changes
+    _nameController.addListener(_markChanged);
+    _placeController.addListener(_markChanged);
+    _descController.addListener(_markChanged);
+    _capacityController.addListener(_markChanged);
+  }
+
+  void _markChanged() {
+    if (!_hasUnsavedChanges) {
+      setState(() => _hasUnsavedChanges = true);
+    }
   }
 
   @override
   void dispose() {
+    _nameController.removeListener(_markChanged);
+    _placeController.removeListener(_markChanged);
+    _descController.removeListener(_markChanged);
+    _capacityController.removeListener(_markChanged);
     _nameController.dispose();
     _placeController.dispose();
     _descController.dispose();
@@ -127,6 +146,7 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
         _endDate = picked;
         _endTime = time ?? TimeOfDay.now();
       }
+      _markChanged(); // Track date/time changes
     });
   }
 
@@ -145,7 +165,7 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
   Future<void> _pickLocation() async {
     HapticFeedback.selectionClick();
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final initial = _selectedLocation ?? const LatLng(13.7563, 100.5018); // Bangkok default
+    final initial = _selectedLocation ?? const LatLng(AppConstants.defaultLatitude, AppConstants.defaultLongitude);
 
     final result = await showModalBottomSheet<LatLng>(
       context: context,
@@ -158,13 +178,21 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
     );
 
     if (result != null) {
-      setState(() => _selectedLocation = result);
+      setState(() {
+        _selectedLocation = result;
+        _markChanged(); // Track location changes
+      });
     }
   }
 
   void _submitEvent() async {
+    // Prevent double submission
+    if (_isSubmitting) return;
+    
     if (!_formKey.currentState!.validate()) return;
     FocusScope.of(context).unfocus();
+
+    setState(() => _isSubmitting = true);
 
     String? imageUrl;
     if (_pickedImage != null) {
@@ -176,6 +204,7 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
       } catch (e) {
         if (mounted) {
           PremiumToast.show(context, 'Failed to upload cover photo', isError: true);
+          setState(() => _isSubmitting = false);
         }
         return;
       }
@@ -200,8 +229,80 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
     if (success && mounted) {
       HapticFeedback.heavyImpact();
       PremiumToast.show(context, '🎉 Event updated!');
+      _hasUnsavedChanges = false; // Reset flag before popping to prevent discard modal
       context.pop();
+    } else if (mounted) {
+      setState(() => _isSubmitting = false);
     }
+  }
+
+  Future<bool> _onWillPop() async {
+    if (!_hasUnsavedChanges) return true;
+    
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final shouldLeave = await showModalBottomSheet<bool>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        decoration: BoxDecoration(
+          color: isDark ? AppTheme.darkSurface : Colors.white,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        padding: const EdgeInsets.fromLTRB(24, 12, 24, 40),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 24),
+            Icon(Icons.warning_amber_rounded, size: 40, color: AppTheme.error),
+            const SizedBox(height: 16),
+            Text('Discard Changes?', style: Theme.of(context).textTheme.titleLarge),
+            const SizedBox(height: 8),
+            Text(
+              'You have unsaved changes. Are you sure you want to leave?',
+              style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.pop(context, false),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    child: const Text('Continue Editing'),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.pop(context, true),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.error,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    child: const Text('Discard', style: TextStyle(color: Colors.white)),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+    
+    return shouldLeave ?? false;
   }
 
   @override
@@ -212,7 +313,16 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      body: SafeArea(
+      body: PopScope(
+        canPop: false,
+        onPopInvokedWithResult: (didPop, result) async {
+          if (didPop) return;
+          final shouldLeave = await _onWillPop();
+          if (shouldLeave && context.mounted) {
+            context.pop();
+          }
+        },
+        child: SafeArea(
         child: CustomScrollView(
           physics: const BouncingScrollPhysics(),
           slivers: [
@@ -254,7 +364,10 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
                             return GestureDetector(
                               onTap: () {
                                 HapticFeedback.selectionClick();
-                                setState(() => _selectedCategory = cat.name);
+                                setState(() {
+                                  _selectedCategory = cat.name;
+                                  _markChanged(); // Track category changes
+                                });
                               },
                               child: AnimatedContainer(
                                 duration: const Duration(milliseconds: 200),
@@ -363,8 +476,17 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
                       GestureDetector(
                         onTap: isLoading ? null : () async {
                           HapticFeedback.selectionClick();
-                          final picked = await ImagePicker().pickImage(source: ImageSource.gallery, maxWidth: 1200, imageQuality: 85);
-                          if (picked != null) setState(() => _pickedImage = File(picked.path));
+                          final picked = await ImagePicker().pickImage(
+                            source: ImageSource.gallery,
+                            maxWidth: AppConstants.maxImageWidth.toDouble(),
+                            imageQuality: AppConstants.imageQuality,
+                          );
+                          if (picked != null) {
+                            setState(() {
+                              _pickedImage = File(picked.path);
+                              _markChanged(); // Track image changes
+                            });
+                          }
                         },
                         child: _buildSectionCard(
                           isDark: isDark,
@@ -414,7 +536,10 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
                           value: _requiresApproval,
                           onChanged: isLoading ? null : (v) {
                             HapticFeedback.selectionClick();
-                            setState(() => _requiresApproval = v);
+                            setState(() {
+                              _requiresApproval = v;
+                              _markChanged(); // Track approval toggle changes
+                            });
                           },
                           activeTrackColor: AppTheme.primaryBlue,
                           title: const Text('Require Approval', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
@@ -431,7 +556,11 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
                       ).animate().fade(delay: 750.ms).slideY(begin: 0.05),
 
                       const SizedBox(height: 32),
-                      AnimatedPrimaryButton(text: 'Save Changes', onPressed: _submitEvent, isLoading: isLoading).animate().fade(delay: 800.ms).slideY(begin: 0.1),
+                      AnimatedPrimaryButton(
+                        text: 'Save Changes',
+                        onPressed: _isSubmitting ? null : _submitEvent,
+                        isLoading: _isSubmitting,
+                      ).animate().fade(delay: 800.ms).slideY(begin: 0.1),
                       const SizedBox(height: 100),
                     ],
                   ),
@@ -440,8 +569,9 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
             ),
           ],
         ),
-      ),
-    );
+      ), // SafeArea
+      ), // PopScope
+    ); // Scaffold
   }
 
   Widget _buildSectionCard({required bool isDark, required Widget child}) {

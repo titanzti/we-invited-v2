@@ -8,6 +8,7 @@ import '../../../utils/api_response.dart';
 import '../domain/post_model.dart';
 import '../domain/join_request_model.dart';
 import 'join_event_response_dto.dart';
+import '../../../exceptions/app_exception.dart';
 
 part 'post_repository.g.dart';
 
@@ -46,8 +47,10 @@ class PostRepository {
         nextCursor: raw['nextCursor'] as String?,
         hasMore: raw['hasMore'] as bool? ?? false,
       );
+    } on DioException catch (e) {
+      throw AppException.fromDio(e);
     } catch (e) {
-      throw Exception('Failed to load events: $e');
+      throw UnknownException('Failed to load events: $e');
     }
   }
 
@@ -64,8 +67,10 @@ class PostRepository {
         ),
       );
       return result.data ?? [];
+    } on DioException catch (e) {
+      throw AppException.fromDio(e);
     } catch (e) {
-      throw Exception('Failed to search events: $e');
+      throw UnknownException('Failed to search events: $e');
     }
   }
 
@@ -96,8 +101,10 @@ class PostRepository {
         if (latitude != null) 'latitude': latitude,
         if (longitude != null) 'longitude': longitude,
       });
+    } on DioException catch (e) {
+      throw AppException.fromDio(e);
     } catch (e) {
-      throw Exception('Failed to create event: $e');
+      throw UnknownException('Failed to create event: $e');
     }
   }
 
@@ -125,8 +132,10 @@ class PostRepository {
         (data) => data as Map<String, dynamic>,
       );
       return result.data?['url'] as String?;
+    } on DioException catch (e) {
+      throw AppException.fromDio(e);
     } catch (e) {
-      throw Exception('Failed to upload image: $e');
+      throw UnknownException('Failed to upload image: $e');
     }
   }
 
@@ -158,16 +167,20 @@ class PostRepository {
         if (latitude != null) 'latitude': latitude,
         if (longitude != null) 'longitude': longitude,
       });
+    } on DioException catch (e) {
+      throw AppException.fromDio(e);
     } catch (e) {
-      throw Exception('Failed to update event: $e');
+      throw UnknownException('Failed to update event: $e');
     }
   }
 
   Future<void> deleteEvent(String eventId) async {
     try {
       await ApiClient.instance.delete('/events/$eventId');
+    } on DioException catch (e) {
+      throw AppException.fromDio(e);
     } catch (e) {
-      throw Exception('Failed to delete event: $e');
+      throw UnknownException('Failed to delete event: $e');
     }
   }
 
@@ -190,10 +203,10 @@ class PostRepository {
         return const JoinEventResponseDto(status: 'APPROVED', message: 'You already joined this event');
       }
 
-      throw Exception(serverMsg.isNotEmpty ? serverMsg : 'Failed to join event');
+      throw AppException.fromDio(e);
     } catch (e) {
       debugPrint('[joinEvent] ERROR: $e');
-      throw Exception('Failed to join event: $e');
+      throw UnknownException('Failed to join event: $e');
     }
   }
 
@@ -207,8 +220,10 @@ class PostRepository {
         ),
       );
       return result.data ?? [];
+    } on DioException catch (e) {
+      throw AppException.fromDio(e);
     } catch (e) {
-      throw Exception('Failed to load your events: $e');
+      throw UnknownException('Failed to load your events: $e');
     }
   }
 
@@ -222,8 +237,10 @@ class PostRepository {
         ),
       );
       return result.data ?? [];
+    } on DioException catch (e) {
+      throw AppException.fromDio(e);
     } catch (e) {
-      throw Exception('Failed to load requests: $e');
+      throw UnknownException('Failed to load requests: $e');
     }
   }
 
@@ -235,8 +252,10 @@ class PostRepository {
         (data) => PostModel.fromJson(data),
       );
       return result.data!;
+    } on DioException catch (e) {
+      throw AppException.fromDio(e);
     } catch (e) {
-      throw Exception('Failed to load event: $e');
+      throw UnknownException('Failed to load event: $e');
     }
   }
 
@@ -246,8 +265,10 @@ class PostRepository {
         '/events/$eventId/requests/$joinId',
         data: {'action': action},
       );
+    } on DioException catch (e) {
+      throw AppException.fromDio(e);
     } catch (e) {
-      throw Exception('Failed to $action request: $e');
+      throw UnknownException('Failed to $action request: $e');
     }
   }
 }

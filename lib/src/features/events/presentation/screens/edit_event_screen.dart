@@ -9,19 +9,21 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:image_picker/image_picker.dart';
 
-import '../controllers/create_event_controller.dart';
+import '../controllers/edit_event_controller.dart';
 import '../../data/post_repository.dart';
 import '../../../../constants/app_theme.dart';
 import '../../../../common_widgets/global_premium_widgets.dart';
+import '../../domain/post_model.dart';
 
-class CreateEventScreen extends ConsumerStatefulWidget {
-  const CreateEventScreen({super.key});
+class EditEventScreen extends ConsumerStatefulWidget {
+  final PostModel post;
+  const EditEventScreen({super.key, required this.post});
 
   @override
-  ConsumerState<CreateEventScreen> createState() => _CreateEventScreenState();
+  ConsumerState<EditEventScreen> createState() => _EditEventScreenState();
 }
 
-class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
+class _EditEventScreenState extends ConsumerState<EditEventScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _placeController = TextEditingController();
@@ -48,6 +50,26 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    final post = widget.post;
+    _nameController.text = post.name;
+    _placeController.text = post.place;
+    _descController.text = post.description;
+    _capacityController.text = post.numpeople;
+    _selectedCategory = post.category;
+    _startDate = post.startdateTime;
+    _startTime = post.startdateTime != null ? TimeOfDay.fromDateTime(post.startdateTime!) : null;
+    _endDate = post.entdateTime;
+    _endTime = post.entdateTime != null ? TimeOfDay.fromDateTime(post.entdateTime!) : null;
+    _requiresApproval = post.requiresApproval;
+    
+    if (post.latitude != null && post.longitude != null) {
+      _selectedLocation = LatLng(post.latitude!, post.longitude!);
+    }
+  }
+
+  @override
   void dispose() {
     _nameController.dispose();
     _placeController.dispose();
@@ -59,10 +81,14 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
   Future<void> _pickDate({required bool isStart}) async {
     HapticFeedback.selectionClick();
     final now = DateTime.now();
+    final existingDate = isStart ? _startDate : _endDate;
+    final firstAllowedDate = existingDate != null && existingDate.isBefore(now)
+        ? DateTime(existingDate.year, existingDate.month, existingDate.day)
+        : DateTime(now.year, now.month, now.day);
     final picked = await showDatePicker(
       context: context,
-      initialDate: (isStart ? _startDate : _endDate) ?? now,
-      firstDate: now,
+      initialDate: existingDate ?? now,
+      firstDate: firstAllowedDate,
       lastDate: now.add(const Duration(days: 365)),
       builder: (context, child) {
         return Theme(
@@ -149,15 +175,15 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
         }
       } catch (e) {
         if (mounted) {
-          PremiumToast.show(context, 'Failed to upload image. Please try again.', isError: true);
+          PremiumToast.show(context, 'Failed to upload cover photo', isError: true);
         }
         return;
       }
     }
-
     final success = await ref
-        .read(createEventControllerProvider.notifier)
-        .createEvent(
+        .read(editEventControllerProvider.notifier)
+        .updateEvent(
+          eventId: widget.post.postid,
           title: _nameController.text.trim(),
           location: _placeController.text.trim(),
           category: _selectedCategory,
@@ -173,14 +199,14 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
 
     if (success && mounted) {
       HapticFeedback.heavyImpact();
-      PremiumToast.show(context, '🎉 Event created!');
-      context.go('/feed');
+      PremiumToast.show(context, '🎉 Event updated!');
+      context.pop();
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final createState = ref.watch(createEventControllerProvider);
+    final createState = ref.watch(editEventControllerProvider);
     final isLoading = createState.isLoading;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
@@ -198,7 +224,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                   children: [
                     Text('Create', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppTheme.textMetadata)),
                     const SizedBox(height: 4),
-                    Text('New Event', style: Theme.of(context).textTheme.displayMedium?.copyWith(fontSize: 36)),
+                    Text('Edit Event', style: Theme.of(context).textTheme.displayMedium?.copyWith(fontSize: 36)),
                   ],
                 ).animate().fade(duration: 500.ms).slideX(begin: -0.05),
               ),
@@ -405,7 +431,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                       ).animate().fade(delay: 750.ms).slideY(begin: 0.05),
 
                       const SizedBox(height: 32),
-                      AnimatedPrimaryButton(text: 'Create Event', onPressed: _submitEvent, isLoading: isLoading).animate().fade(delay: 800.ms).slideY(begin: 0.1),
+                      AnimatedPrimaryButton(text: 'Save Changes', onPressed: _submitEvent, isLoading: isLoading).animate().fade(delay: 800.ms).slideY(begin: 0.1),
                       const SizedBox(height: 100),
                     ],
                   ),

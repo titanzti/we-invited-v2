@@ -4,6 +4,7 @@ import '../../data/rsvp_repository.dart';
 import '../../domain/rsvp_model.dart';
 import '../../domain/notification_prefs_model.dart';
 import '../../domain/invite_model.dart';
+import 'feed_controller.dart';
 
 final rsvpControllerProvider = AsyncNotifierProvider<RSVPController, void>(() {
   return RSVPController();
@@ -31,11 +32,24 @@ class RSVPController extends AsyncNotifier<void> {
         guestCount: guestCount,
         note: note,
       );
+      ref.invalidate(feedControllerProvider);
+    });
+  }
+
+  Future<void> cancelRSVP(String eventId) async {
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(() async {
+      await _repository.cancelRSVP(eventId);
+      ref.invalidate(feedControllerProvider);
     });
   }
 
   Future<RSVPStats> getEventRSVPStats(String eventId) async {
     return _repository.getEventRSVPStats(eventId);
+  }
+
+  Future<RSVPModel?> getMyRSVP(String eventId) async {
+    return _repository.getMyRSVP(eventId);
   }
 
   Future<List<RSVPModel>> getMyRSVPs() async {
@@ -66,5 +80,13 @@ class RSVPController extends AsyncNotifier<void> {
 
   Future<List<RSVPUserModel>> searchUsers(String query) async {
     return _repository.searchUsers(query);
+  }
+
+  Future<List<InviteModel>> getMyInvites() async {
+    return _repository.getMyInvites();
+  }
+
+  Future<InviteModel> respondToInvite(String inviteId, String action) async {
+    return _repository.respondToInvite(inviteId, action);
   }
 }

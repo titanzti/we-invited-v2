@@ -1,4 +1,6 @@
+import 'dart:io';
 import 'package:dio/dio.dart';
+import 'package:http_parser/http_parser.dart';
 import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../utils/api_client.dart';
@@ -9,6 +11,14 @@ import 'join_event_response_dto.dart';
 
 part 'post_repository.g.dart';
 
+class FeedPage {
+  final List<PostModel> posts;
+  final String? nextCursor;
+  final bool hasMore;
+
+  const FeedPage({required this.posts, this.nextCursor, this.hasMore = false});
+}
+
 @Riverpod(keepAlive: true)
 PostRepository postRepository(PostRepositoryRef ref) {
   return PostRepository();
@@ -17,21 +27,25 @@ PostRepository postRepository(PostRepositoryRef ref) {
 class PostRepository {
   PostRepository();
 
-  Future<List<PostModel>> getPosts({String? category}) async {
+  Future<FeedPage> getPosts({String? category, String? cursor, int limit = 15}) async {
     try {
       final response = await ApiClient.instance.get(
         '/events',
         queryParameters: {
           if (category != null && category.isNotEmpty) 'category': category,
+          if (cursor != null) 'cursor': cursor,
+          'limit': limit.toString(),
         },
       );
-      final result = ApiResponse<List<PostModel>>.fromJson(
-        response.data,
-        (data) => List<PostModel>.from(
-          (data as List).map((x) => PostModel.fromJson(x)),
-        ),
+      final raw = response.data as Map<String, dynamic>;
+      final posts = (raw['data'] as List? ?? [])
+          .map((x) => PostModel.fromJson(x))
+          .toList();
+      return FeedPage(
+        posts: posts,
+        nextCursor: raw['nextCursor'] as String?,
+        hasMore: raw['hasMore'] as bool? ?? false,
       );
-      return result.data ?? [];
     } catch (e) {
       throw Exception('Failed to load events: $e');
     }
@@ -84,6 +98,76 @@ class PostRepository {
       });
     } catch (e) {
       throw Exception('Failed to create event: $e');
+    }
+  }
+
+  Future<String?> uploadEventImage(File file) async {
+    try {
+      final fileName = file.path.split('/').last;
+      final lowerFileName = fileName.toLowerCase();
+      final contentType = lowerFileName.endsWith('.jpg') || lowerFileName.endsWith('.jpeg')
+          ? MediaType('image', 'jpeg')
+          : lowerFileName.endsWith('.webp')
+              ? MediaType('image', 'webp')
+              : lowerFileName.endsWith('.png')
+                  ? MediaType('image', 'png')
+                  : null;
+      final formData = FormData.fromMap({
+        'image': await MultipartFile.fromFile(
+          file.path,
+          filename: fileName,
+          contentType: contentType,
+        ),
+      });
+      final response = await ApiClient.instance.post('/events/upload-image', data: formData);
+      final result = ApiResponse<Map<String, dynamic>>.fromJson(
+        response.data,
+        (data) => data as Map<String, dynamic>,
+      );
+      return result.data?['url'] as String?;
+    } catch (e) {
+      throw Exception('Failed to upload image: $e');
+    }
+  }
+
+  Future<void> updateEvent({
+    required String eventId,
+    required String title,
+    required String location,
+    required String category,
+    String? description,
+    String? imageUrl,
+    DateTime? startDateTime,
+    DateTime? endDateTime,
+    int? maxCapacity,
+    bool requiresApproval = false,
+    double? latitude,
+    double? longitude,
+  }) async {
+    try {
+      await ApiClient.instance.patch('/events/$eventId', data: {
+        'title': title,
+        'location': location,
+        'category': category,
+        if (description != null && description.isNotEmpty) 'description': description,
+        if (imageUrl != null && imageUrl.isNotEmpty) 'imageUrl': imageUrl,
+        if (startDateTime != null) 'startdateTime': startDateTime.toIso8601String(),
+        if (endDateTime != null) 'entdateTime': endDateTime.toIso8601String(),
+        if (maxCapacity != null) 'numpeople': maxCapacity.toString(),
+        'requiresApproval': requiresApproval,
+        if (latitude != null) 'latitude': latitude,
+        if (longitude != null) 'longitude': longitude,
+      });
+    } catch (e) {
+      throw Exception('Failed to update event: $e');
+    }
+  }
+
+  Future<void> deleteEvent(String eventId) async {
+    try {
+      await ApiClient.instance.delete('/events/$eventId');
+    } catch (e) {
+      throw Exception('Failed to delete event: $e');
     }
   }
 
@@ -140,6 +224,19 @@ class PostRepository {
       return result.data ?? [];
     } catch (e) {
       throw Exception('Failed to load requests: $e');
+    }
+  }
+
+  Future<PostModel> getEventById(String eventId) async {
+    try {
+      final response = await ApiClient.instance.get('/events/$eventId');
+      final result = ApiResponse<PostModel>.fromJson(
+        response.data,
+        (data) => PostModel.fromJson(data),
+      );
+      return result.data!;
+    } catch (e) {
+      throw Exception('Failed to load event: $e');
     }
   }
 

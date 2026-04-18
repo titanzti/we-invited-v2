@@ -5,11 +5,13 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:intl/intl.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../../domain/post_model.dart';
 import '../../domain/rsvp_model.dart';
 import '../../data/post_repository.dart';
 import '../../presentation/controllers/rsvp_controller.dart';
+import '../../presentation/controllers/feed_controller.dart';
 import '../../presentation/widgets/rsvp_status_card.dart';
 import '../../../authentication/data/auth_repository.dart';
 import '../../../../constants/app_theme.dart';
@@ -35,7 +37,27 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
   @override
   void initState() {
     super.initState();
-    _loadRSVPStats();
+    _loadInitialData();
+  }
+
+  Future<void> _loadInitialData() async {
+    await Future.wait([
+      _loadRSVPStats(),
+      _loadMyRSVP(),
+    ]);
+  }
+
+  Future<void> _loadMyRSVP() async {
+    try {
+      final myRsvp = await ref.read(rsvpControllerProvider.notifier).getMyRSVP(widget.post.postid);
+      if (mounted && myRsvp != null) {
+        setState(() {
+          _myRSVPStatus = myRsvp.status;
+          _guestCount = myRsvp.guestCount;
+          _hasJoined = true;
+        });
+      }
+    } catch (_) {}
   }
 
   Future<void> _loadRSVPStats() async {
@@ -52,7 +74,6 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
   Future<void> _submitRSVP(RSVPStatus status) async {
     HapticFeedback.mediumImpact();
     
-    // Show guest count dialog if going
     if (status == RSVPStatus.going) {
       final guestCount = await showDialog<int>(
         context: context,
@@ -64,6 +85,29 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
 
     setState(() => _isJoining = true);
     try {
+      if (status == RSVPStatus.going || status == RSVPStatus.maybe) {
+        try {
+          final joinResp = await ref.read(postRepositoryProvider).joinEvent(widget.post.postid);
+          if (joinResp.status == 'PENDING') {
+            if (mounted) {
+              setState(() {
+                _isJoining = false;
+                _hasJoined = true;
+                _isPendingApproval = true;
+              });
+              PremiumToast.show(context, '📩 Request sent! Waiting for approval.');
+            }
+            return;
+          }
+        } catch (e) {
+          if (mounted) {
+            setState(() => _isJoining = false);
+            PremiumToast.show(context, 'Failed to join event. Try again.', isError: true);
+          }
+          return;
+        }
+      }
+
       await ref.read(rsvpControllerProvider.notifier).submitRSVP(
         eventId: widget.post.postid,
         status: status,
@@ -74,6 +118,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
         HapticFeedback.heavyImpact();
         setState(() {
           _myRSVPStatus = status;
+          _hasJoined = true; // Mark as joined locally
           _isJoining = false;
         });
 
@@ -97,127 +142,56 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
     return DateFormat('EEEE, MMMM d · h:mm a').format(date);
   }
 
-  Future<void> _showJoinSheet() async {
-    HapticFeedback.mediumImpact();
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    final confirmed = await showModalBottomSheet<bool>(
+  Future<void> _deleteEvent() async {
+    final confirmed = await showDialog<bool>(
       context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (context) => Container(
-        decoration: BoxDecoration(
-          color: isDark ? AppTheme.darkSurface : Colors.white,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        padding: const EdgeInsets.fromLTRB(24, 12, 24, 40),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: Colors.grey.shade300,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            const SizedBox(height: 24),
-            Icon(
-              Icons.celebration,
-              size: 48,
-              color: AppTheme.primaryBlue,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              widget.post.requiresApproval ? 'Request to Join' : 'Join this Event?',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              widget.post.name.isNotEmpty ? widget.post.name : 'Exclusive Event',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Colors.grey.shade600,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            if (widget.post.startdateTime != null) ...[
-              const SizedBox(height: 12),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                decoration: BoxDecoration(
-                  color: AppTheme.primaryBlue.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.schedule, size: 16, color: AppTheme.primaryBlue),
-                    const SizedBox(width: 6),
-                    Text(
-                      _formatEventDate(widget.post.startdateTime),
-                      style: const TextStyle(
-                        color: AppTheme.primaryBlue,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 13,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-            const SizedBox(height: 24),
-            Row(
-              children: [
-                Expanded(
-                  child: TextButton(
-                    onPressed: () => Navigator.pop(context, false),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      side: BorderSide(color: Colors.grey.shade300),
-                    ),
-                    child: const Text('Cancel'),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  flex: 2,
-                  child: AnimatedPrimaryButton(
-                    text: widget.post.requiresApproval ? 'Send Request' : 'Confirm Join',
-                    onPressed: () => Navigator.pop(context, true),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Event'),
+        content: const Text('Are you sure you want to delete this event? This cannot be undone.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+          ),
+        ],
       ),
     );
 
     if (confirmed == true && mounted) {
-      setState(() => _isJoining = true);
+      HapticFeedback.heavyImpact();
       try {
-        final response = await ref.read(postRepositoryProvider).joinEvent(widget.post.postid);
+        await ref.read(postRepositoryProvider).deleteEvent(widget.post.postid);
+        ref.invalidate(feedControllerProvider);
         if (mounted) {
-          HapticFeedback.heavyImpact();
-          final isPending = response.status == 'PENDING';
-          setState(() {
-            _isJoining = false;
-            _hasJoined = true;
-            _isPendingApproval = isPending;
-          });
-          PremiumToast.show(
-            context,
-            isPending ? '📩 Request sent! Waiting for approval.' : '🎉 You\'re in! See you there.',
-          );
+          PremiumToast.show(context, '🗑️ Event deleted');
+          context.pop();
         }
       } catch (e) {
         if (mounted) {
-          setState(() => _isJoining = false);
-          final msg = e.toString().replaceFirst('Exception: ', '');
-          PremiumToast.show(context, msg, isError: true);
+          PremiumToast.show(context, 'Failed to delete event', isError: true);
         }
+      }
+    }
+  }
+
+  Future<void> _cancelRSVP() async {
+    HapticFeedback.mediumImpact();
+    setState(() => _isJoining = true);
+    try {
+      await ref.read(rsvpControllerProvider.notifier).cancelRSVP(widget.post.postid);
+      if (mounted) {
+        setState(() {
+          _myRSVPStatus = null;
+          _hasJoined = false;
+          _isJoining = false;
+        });
+        PremiumToast.show(context, 'RSVP cancelled');
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isJoining = false);
+        PremiumToast.show(context, 'Failed to cancel RSVP', isError: true);
       }
     }
   }
@@ -278,12 +252,62 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                       ),
                     );
                   }),
+                  // Edit
+                  Builder(builder: (context) {
+                    if (!isHost) return const SizedBox.shrink();
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 8.0),
+                      child: GestureDetector(
+                        onTap: () {
+                          HapticFeedback.lightImpact();
+                          context.push('/feed/event/edit', extra: widget.post);
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.3),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.edit, color: Colors.white, size: 18),
+                        ),
+                      ),
+                    );
+                  }),
+                  // Delete
+                  Builder(builder: (context) {
+                    if (!isHost) return const SizedBox.shrink();
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 8.0),
+                      child: GestureDetector(
+                        onTap: () {
+                          HapticFeedback.lightImpact();
+                          _deleteEvent();
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.3),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.delete_outline, color: Colors.white, size: 18),
+                        ),
+                      ),
+                    );
+                  }),
                   Padding(
                     padding: const EdgeInsets.only(right: 8.0),
                     child: GestureDetector(
                       onTap: () {
                         HapticFeedback.lightImpact();
-                        // Share action
+                        final event = widget.post;
+                        final dateStr = event.startdateTime != null
+                            ? DateFormat('MMM d, y · h:mm a').format(event.startdateTime!)
+                            : 'Date TBD';
+                        final text = '🎉 ${event.name}\n'
+                            '📍 ${event.place}\n'
+                            '📅 $dateStr\n\n'
+                            'Join me on We Invited!';
+                        Share.share(text);
                       },
                       child: Container(
                         padding: const EdgeInsets.all(8),
@@ -457,37 +481,8 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
 
                       const SizedBox(height: 28),
 
-                      // RSVP Section (only after joining and approved)
-                      if (_hasJoined && !_isPendingApproval) ...[
-                        Text(
-                          'Are you going?',
-                          style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-                        ).animate().fade(delay: 600.ms),
+                      // RSVP Section is moved to sticky footer
 
-                        const SizedBox(height: 16),
-
-                        _RSVPActionButtons(
-                          currentStatus: _myRSVPStatus,
-                          isJoining: _isJoining,
-                          onGoing: () => _submitRSVP(RSVPStatus.going),
-                          onMaybe: () => _submitRSVP(RSVPStatus.maybe),
-                          onNotGoing: () => _submitRSVP(RSVPStatus.notGoing),
-                        ).animate().fade(delay: 700.ms).slideY(begin: 0.1),
-
-                        if (_myRSVPStatus != null && _myRSVPStatus == RSVPStatus.going) ...[
-                          const SizedBox(height: 12),
-                          Text(
-                            '+$_guestCount guest${_guestCount != 1 ? 's' : ''}',
-                            style: TextStyle(
-                              color: isDark ? AppTheme.darkTextSecondary : Colors.grey.shade600,
-                              fontSize: 13,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-
-                        const SizedBox(height: 28),
-                      ],
 
                       if (_hasJoined && _isPendingApproval)
                         Container(
@@ -566,26 +561,23 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                         ],
                       ),
                     )
-                  : _hasJoined
+                  : _isPendingApproval
                       ? Container(
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           decoration: BoxDecoration(
-                            color: (_isPendingApproval ? Colors.orange : AppTheme.secondaryTeal).withValues(alpha: 0.1),
+                            color: Colors.orange.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: (_isPendingApproval ? Colors.orange : AppTheme.secondaryTeal).withValues(alpha: 0.3)),
+                            border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
                           ),
-                          child: Row(
+                          child: const Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(
-                                _isPendingApproval ? Icons.hourglass_top : Icons.check_circle,
-                                color: _isPendingApproval ? Colors.orange : AppTheme.secondaryTeal,
-                              ),
-                              const SizedBox(width: 8),
+                              Icon(Icons.hourglass_top, color: Colors.orange),
+                              SizedBox(width: 8),
                               Text(
-                                _isPendingApproval ? 'Request Sent' : 'You\'re Going!',
+                                'Request Sent',
                                 style: TextStyle(
-                                  color: _isPendingApproval ? Colors.orange : AppTheme.secondaryTeal,
+                                  color: Colors.orange,
                                   fontWeight: FontWeight.w700,
                                   fontSize: 16,
                                 ),
@@ -593,9 +585,41 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                             ],
                           ),
                         ).animate().scale(begin: const Offset(0.9, 0.9), curve: Curves.easeOutBack)
-                      : AnimatedPrimaryButton(
-                          text: _isJoining ? 'Joining...' : (widget.post.requiresApproval ? 'Request to Join' : 'Join Event'),
-                          onPressed: _isJoining ? null : _showJoinSheet,
+                      : Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Are you going?',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                                color: isDark ? AppTheme.darkTextSecondary : Colors.grey.shade600,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            _RSVPActionButtons(
+                              currentStatus: _myRSVPStatus,
+                              isJoining: _isJoining,
+                              onGoing: () => _submitRSVP(RSVPStatus.going),
+                              onMaybe: () => _submitRSVP(RSVPStatus.maybe),
+                              onNotGoing: () => _submitRSVP(RSVPStatus.notGoing),
+                            ),
+                            if (_myRSVPStatus != null) ...[
+                              const SizedBox(height: 8),
+                              Center(
+                                child: TextButton.icon(
+                                  onPressed: _isJoining ? null : _cancelRSVP,
+                                  icon: const Icon(Icons.cancel_outlined, size: 16),
+                                  label: const Text('Cancel RSVP'),
+                                  style: TextButton.styleFrom(
+                                    foregroundColor: Colors.grey.shade500,
+                                    textStyle: const TextStyle(fontSize: 13),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ],
                         ),
             ).animate().slideY(begin: 1.0, duration: 600.ms, delay: 600.ms, curve: Curves.easeOutQuart),
           ),

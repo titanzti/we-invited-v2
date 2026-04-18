@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../utils/api_client.dart';
 import '../../../utils/api_response.dart';
@@ -48,6 +49,22 @@ class RSVPRepository {
       return result.data ?? [];
     } catch (e) {
       throw Exception('Failed to load RSVPs: $e');
+    }
+  }
+
+  Future<RSVPModel?> getMyRSVP(String eventId) async {
+    try {
+      final response = await ApiClient.instance.get('/rsvp/$eventId/me');
+      final result = ApiResponse<RSVPModel>.fromJson(
+        response.data,
+        (data) => RSVPModel.fromJson(data),
+      );
+      return result.data;
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 404) return null;
+      throw Exception('Failed to load your RSVP: ${e.message}');
+    } catch (e) {
+      throw Exception('Failed to load your RSVP: $e');
     }
   }
 
@@ -169,6 +186,13 @@ class RSVPRepository {
       return result.data!;
     } catch (e) {
       throw Exception('Failed to update notification preferences: $e');
+    }
+  }
+  Future<void> cancelRSVP(String eventId) async {
+    try {
+      await ApiClient.instance.delete('/rsvp/$eventId');
+    } catch (e) {
+      throw Exception('Failed to cancel RSVP: $e');
     }
   }
 }

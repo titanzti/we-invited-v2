@@ -30,8 +30,13 @@ class TestHelpers {
     return false;
   }
 
-  /// Find widget by Key
-  static Finder byKey(String key) {
+  /// Find widget by Key (supports ValueKey, GlobalKey, ObjectKey, etc.)
+  static Finder byKey(Key key) {
+    return find.byKey(key);
+  }
+
+  /// Find widget by string ValueKey (convenience method)
+  static Finder byStringKey(String key) {
     return find.byKey(ValueKey(key));
   }
 

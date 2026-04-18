@@ -476,7 +476,11 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
                       GestureDetector(
                         onTap: isLoading ? null : () async {
                           HapticFeedback.selectionClick();
-                          final picked = await ImagePicker().pickImage(source: ImageSource.gallery, maxWidth: 1200, imageQuality: 85);
+                          final picked = await ImagePicker().pickImage(
+                            source: ImageSource.gallery,
+                            maxWidth: AppConstants.maxImageWidth.toDouble(),
+                            imageQuality: AppConstants.imageQuality,
+                          );
                           if (picked != null) {
                             setState(() {
                               _pickedImage = File(picked.path);

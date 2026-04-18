@@ -13,7 +13,7 @@ import '../../../events/data/post_repository.dart';
 import '../../../events/domain/post_model.dart';
 import '../../../events/presentation/screens/my_rsvps_screen.dart';
 import '../../../events/presentation/screens/my_invites_screen.dart';
-import '../../../events/presentation/screens/home_screen.dart';
+import '../../../../common_widgets/premium_post_card.dart';
 import '../../../../constants/theme_provider.dart';
 import '../../../../exceptions/app_exception.dart';
 

@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../features/events/presentation/screens/home_screen.dart';
 import '../features/events/presentation/screens/event_detail_screen.dart';
 import '../features/events/presentation/screens/create_event_screen.dart';
+import '../features/events/presentation/screens/edit_event_screen.dart';
 import '../features/events/presentation/screens/guest_list_screen.dart';
 import '../features/events/presentation/screens/invite_users_screen.dart';
 import '../features/events/presentation/screens/notification_settings_screen.dart';
@@ -12,6 +13,7 @@ import '../features/events/domain/post_model.dart';
 import '../features/authentication/presentation/screens/login_screen.dart';
 import '../features/authentication/presentation/screens/register_screen.dart';
 import '../features/authentication/presentation/screens/profile_screen.dart';
+import '../features/authentication/presentation/screens/edit_profile_screen.dart';
 import 'splash_screen.dart';
 import 'main_scaffold.dart';
 import '../features/authentication/data/auth_repository.dart';
@@ -117,6 +119,17 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                           );
                         },
                       ),
+                      GoRoute(
+                        path: 'edit',
+                        parentNavigatorKey: _rootNavigatorKey,
+                        builder: (context, state) {
+                          final post = state.extra as PostModel?;
+                          if (post == null) {
+                            return const Scaffold(body: Center(child: Text('Event not found!')));
+                          }
+                          return EditEventScreen(post: post);
+                        },
+                      ),
                     ],
                   ),
                 ],
@@ -147,6 +160,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                     path: 'notifications',
                     parentNavigatorKey: _rootNavigatorKey,
                     builder: (context, state) => const NotificationSettingsScreen(),
+                  ),
+                  GoRoute(
+                    path: 'edit',
+                    parentNavigatorKey: _rootNavigatorKey,
+                    builder: (context, state) => const EditProfileScreen(),
                   ),
                 ],
               ),

@@ -51,6 +51,19 @@ class RSVPRepository {
     }
   }
 
+  Future<RSVPModel?> getMyRSVP(String eventId) async {
+    try {
+      final response = await ApiClient.instance.get('/rsvp/$eventId/me');
+      final result = ApiResponse<RSVPModel>.fromJson(
+        response.data,
+        (data) => RSVPModel.fromJson(data),
+      );
+      return result.data;
+    } catch (_) {
+      return null;
+    }
+  }
+
   Future<RSVPStats> getEventRSVPStats(String eventId) async {
     try {
       final response = await ApiClient.instance.get('/rsvp/$eventId');
@@ -169,6 +182,13 @@ class RSVPRepository {
       return result.data!;
     } catch (e) {
       throw Exception('Failed to update notification preferences: $e');
+    }
+  }
+  Future<void> cancelRSVP(String eventId) async {
+    try {
+      await ApiClient.instance.delete('/rsvp/$eventId');
+    } catch (e) {
+      throw Exception('Failed to cancel RSVP: $e');
     }
   }
 }

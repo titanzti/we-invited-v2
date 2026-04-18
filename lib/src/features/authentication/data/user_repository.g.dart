@@ -6,41 +6,7 @@ part of 'user_repository.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$firebaseFirestoreHash() => r'2e7f8bd195d91c027c5155f34b719187867bc113';
-
-/// See also [firebaseFirestore].
-@ProviderFor(firebaseFirestore)
-final firebaseFirestoreProvider = Provider<FirebaseFirestore>.internal(
-  firebaseFirestore,
-  name: r'firebaseFirestoreProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$firebaseFirestoreHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
-
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef FirebaseFirestoreRef = ProviderRef<FirebaseFirestore>;
-String _$firebaseStorageHash() => r'ddec157566e3f96dac39d44de2cd99f9d71f9b54';
-
-/// See also [firebaseStorage].
-@ProviderFor(firebaseStorage)
-final firebaseStorageProvider = Provider<FirebaseStorage>.internal(
-  firebaseStorage,
-  name: r'firebaseStorageProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$firebaseStorageHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
-
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef FirebaseStorageRef = ProviderRef<FirebaseStorage>;
-String _$userRepositoryHash() => r'a43ba8d2eb7f68ae021b9fae759121a6eccbebfb';
+String _$userRepositoryHash() => r'775f0a0cbfe43fcc5b0fbeec8ecf75a7b4fd0859';
 
 /// See also [userRepository].
 @ProviderFor(userRepository)

@@ -7,7 +7,7 @@ part of 'create_event_controller.dart';
 // **************************************************************************
 
 String _$createEventControllerHash() =>
-    r'924192ae22fb998e73c115bf80a558db727f0162';
+    r'81c3e454d52add2f54b74e57208e6442f3e919a0';
 
 /// See also [CreateEventController].
 @ProviderFor(CreateEventController)

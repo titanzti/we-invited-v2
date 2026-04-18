@@ -1,10 +1,10 @@
 import 'package:dio/dio.dart';
 
-class AppException implements Exception {
+sealed class AppException implements Exception {
   final String message;
   final String code;
 
-  const AppException(this.message, {this.code = 'unknown_error'});
+  const AppException(this.message, this.code);
 
   @override
   String toString() => message;
@@ -13,28 +13,64 @@ class AppException implements Exception {
     if (e is DioException) {
       final statusCode = e.response?.statusCode;
       final data = e.response?.data;
-      final serverMsg = data is Map ? data['error'] ?? data['message'] : null;
+      
+      final serverMsg = switch (data) {
+        {'error': final String err} => err,
+        {'message': final String msg} => msg,
+        _ => null,
+      };
 
       return switch (statusCode) {
-        400 => AppException(serverMsg ?? 'Invalid request. Please check your input.', code: 'bad_request'),
-        401 => const AppException('Session expired. Please sign in again.', code: 'unauthorized'),
-        403 => const AppException('You don\'t have permission to do this.', code: 'forbidden'),
-        404 => const AppException('The requested resource was not found.', code: 'not_found'),
-        409 => AppException(serverMsg ?? 'This action conflicts with existing data.', code: 'conflict'),
-        422 => AppException(serverMsg ?? 'Please check your input and try again.', code: 'validation'),
-        429 => const AppException('Too many requests. Please wait a moment.', code: 'rate_limit'),
-        final code when code != null && code >= 500 => const AppException('Server error. Please try again later.', code: 'server_error'),
-        _ => AppException(serverMsg ?? 'Something went wrong. Please try again.', code: 'unknown'),
+        400 => BadRequestException(serverMsg ?? 'Invalid request. Please check your input.'),
+        401 => const UnauthorizedException('Session expired. Please sign in again.'),
+        403 => const ForbiddenException('You don\'t have permission to do this.'),
+        404 => const NotFoundException('The requested resource was not found.'),
+        409 => ConflictException(serverMsg ?? 'This action conflicts with existing data.'),
+        422 => ValidationException(serverMsg ?? 'Please check your input and try again.'),
+        429 => const RateLimitException('Too many requests. Please wait a moment.'),
+        final int code when code >= 500 => const ServerException('Server error. Please try again later.'),
+        _ => UnknownException(serverMsg ?? 'Something went wrong. Please try again.'),
       };
     }
 
     if (e is Exception) {
       final msg = e.toString();
       if (msg.contains('SocketException') || msg.contains('Failed host lookup')) {
-        return const AppException('No internet connection. Please check your network.', code: 'network');
+        return const NetworkException('No internet connection. Please check your network.');
       }
     }
 
-    return AppException('An unexpected error occurred: $e');
+    return UnknownException('An unexpected error occurred: $e');
   }
+}
+
+final class BadRequestException extends AppException {
+  const BadRequestException(String message) : super(message, 'bad_request');
+}
+final class UnauthorizedException extends AppException {
+  const UnauthorizedException(String message) : super(message, 'unauthorized');
+}
+final class ForbiddenException extends AppException {
+  const ForbiddenException(String message) : super(message, 'forbidden');
+}
+final class NotFoundException extends AppException {
+  const NotFoundException(String message) : super(message, 'not_found');
+}
+final class ConflictException extends AppException {
+  const ConflictException(String message) : super(message, 'conflict');
+}
+final class ValidationException extends AppException {
+  const ValidationException(String message) : super(message, 'validation');
+}
+final class RateLimitException extends AppException {
+  const RateLimitException(String message) : super(message, 'rate_limit');
+}
+final class ServerException extends AppException {
+  const ServerException(String message) : super(message, 'server_error');
+}
+final class NetworkException extends AppException {
+  const NetworkException(String message) : super(message, 'network');
+}
+final class UnknownException extends AppException {
+  const UnknownException(String message) : super(message, 'unknown_error');
 }

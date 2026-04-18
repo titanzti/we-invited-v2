@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 import '../../../../constants/app_theme.dart';
 import '../controllers/auth_controller.dart';
@@ -10,6 +11,8 @@ import '../../data/auth_repository.dart';
 import '../../../events/data/post_repository.dart';
 import '../../../events/domain/post_model.dart';
 import '../../../events/presentation/screens/my_rsvps_screen.dart';
+import '../../../events/presentation/screens/my_invites_screen.dart';
+import '../../../../constants/theme_provider.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -24,7 +27,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTicker
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 4, vsync: this);
   }
 
   @override
@@ -175,14 +178,19 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTicker
                               shape: BoxShape.circle,
                               boxShadow: PremiumShadows.softCard,
                             ),
-                            child: CircleAvatar(
-                              radius: 40,
-                              backgroundColor: AppTheme.primaryBlue.withValues(alpha: 0.15),
-                              child: Text(
-                                (user?.name ?? '').isNotEmpty ? (user?.name ?? 'U')[0].toUpperCase() : 'U',
-                                style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: AppTheme.primaryBlue),
-                              ),
-                            ),
+                            child: user?.profilePhoto != null && user!.profilePhoto!.isNotEmpty
+                                ? CircleAvatar(
+                                    radius: 40,
+                                    backgroundImage: CachedNetworkImageProvider(user.profilePhoto!),
+                                  )
+                                : CircleAvatar(
+                                    radius: 40,
+                                    backgroundColor: AppTheme.primaryBlue.withValues(alpha: 0.15),
+                                    child: Text(
+                                      (user?.name ?? '').isNotEmpty ? (user?.name ?? 'U')[0].toUpperCase() : 'U',
+                                      style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: AppTheme.primaryBlue),
+                                    ),
+                                  ),
                           ).animate().scale(curve: Curves.easeOutBack, duration: 600.ms),
                           const SizedBox(width: 16),
                           Expanded(
@@ -228,6 +236,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTicker
                   tabs: const [
                     Tab(text: 'My Events'),
                     Tab(text: 'My RSVPs'),
+                    Tab(text: 'Invites'),
                     Tab(text: 'Settings'),
                   ],
                 ),
@@ -239,13 +248,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTicker
         body: TabBarView(
           controller: _tabController,
           children: [
-            // Tab 1: My Events from API
             _MyEventsTab(),
 
-            // Tab 2: My RSVPs
             const MyRSVPsScreen(),
 
-            // Tab 3: Settings
+            const MyInvitesScreen(),
+
             _SettingsTab(),
           ],
         ),
@@ -254,116 +262,168 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTicker
   }
 }
 
-class _MyEventsTab extends ConsumerWidget {
+class _MyEventsTab extends ConsumerStatefulWidget {
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_MyEventsTab> createState() => _MyEventsTabState();
+}
+
+class _MyEventsTabState extends ConsumerState<_MyEventsTab> {
+  List<PostModel> _events = [];
+  bool _isLoading = true;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadEvents();
+  }
+
+  Future<void> _loadEvents() async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+    try {
+      final events = await ref.read(postRepositoryProvider).getMyEvents();
+      if (mounted) setState(() { _events = events; _isLoading = false; });
+    } catch (e) {
+      if (mounted) setState(() { _error = 'Failed to load events'; _isLoading = false; });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return FutureBuilder<List<PostModel>>(
-      future: ref.read(postRepositoryProvider).getMyEvents(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        }
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
 
-        final events = snapshot.data ?? [];
+    if (_error != null) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.cloud_off, size: 48, color: Colors.grey.shade300),
+            const SizedBox(height: 12),
+            Text(_error!, style: TextStyle(color: Colors.grey.shade600)),
+            const SizedBox(height: 12),
+            OutlinedButton(onPressed: _loadEvents, child: const Text('Retry')),
+          ],
+        ),
+      );
+    }
 
-        if (events.isEmpty) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.event_note, size: 64, color: Colors.grey.shade300),
-                const SizedBox(height: 16),
-                Text(
-                  'No events yet',
-                  style: TextStyle(
-                    color: Colors.grey.shade500,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Create or join an event to see it here',
-                  style: TextStyle(color: Colors.grey.shade400, fontSize: 14),
-                ),
-              ],
+    if (_events.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.event_note, size: 64, color: Colors.grey.shade300),
+            const SizedBox(height: 16),
+            Text(
+              'No events yet',
+              style: TextStyle(color: Colors.grey.shade500, fontSize: 16, fontWeight: FontWeight.w600),
             ),
-          );
-        }
+            const SizedBox(height: 8),
+            Text(
+              'Create or join an event to see it here',
+              style: TextStyle(color: Colors.grey.shade400, fontSize: 14),
+            ),
+          ],
+        ),
+      );
+    }
 
-        return ListView.builder(
-          padding: const EdgeInsets.only(top: 24, left: 24, right: 24, bottom: 120),
-          itemCount: events.length,
-          itemBuilder: (context, index) {
-            final event = events[index];
-            return Container(
+    return RefreshIndicator(
+      onRefresh: _loadEvents,
+      child: ListView.builder(
+        padding: const EdgeInsets.only(top: 24, left: 24, right: 24, bottom: 120),
+        itemCount: _events.length,
+        itemBuilder: (context, index) {
+          final event = _events[index];
+          return GestureDetector(
+            onTap: () {
+              HapticFeedback.lightImpact();
+              context.push('/feed/event', extra: event);
+            },
+            child: Container(
               margin: const EdgeInsets.only(bottom: 16),
-              padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: isDark ? AppTheme.darkSurface : Colors.white,
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: isDark ? null : PremiumShadows.softCard,
                 border: isDark ? Border.all(color: AppTheme.darkBorder) : null,
               ),
+              clipBehavior: Clip.antiAlias,
               child: Row(
                 children: [
-                  Container(
-                    width: 52,
-                    height: 52,
-                    decoration: BoxDecoration(
-                      color: AppTheme.primaryBlue.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    child: const Icon(Icons.event, color: AppTheme.primaryBlue),
+                  SizedBox(
+                    width: 80,
+                    height: 80,
+                    child: event.image.isNotEmpty
+                        ? CachedNetworkImage(
+                            imageUrl: event.image,
+                            fit: BoxFit.cover,
+                            placeholder: (_, __) => Container(color: AppTheme.primaryBlue.withValues(alpha: 0.1)),
+                            errorWidget: (_, __, ___) => Container(
+                              color: AppTheme.primaryBlue.withValues(alpha: 0.1),
+                              child: const Icon(Icons.event, color: AppTheme.primaryBlue),
+                            ),
+                          )
+                        : Container(
+                            color: AppTheme.primaryBlue.withValues(alpha: 0.1),
+                            child: const Icon(Icons.event, color: AppTheme.primaryBlue),
+                          ),
                   ),
-                  const SizedBox(width: 14),
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          event.name.isNotEmpty ? event.name : 'Untitled',
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(fontSize: 15),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          event.place.isNotEmpty ? event.place : 'No location',
-                          style: TextStyle(fontSize: 13, color: Colors.grey.shade500),
-                        ),
-                      ],
+                    child: Padding(
+                      padding: const EdgeInsets.all(14),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            event.name.isNotEmpty ? event.name : 'Untitled',
+                            style: Theme.of(context).textTheme.titleMedium?.copyWith(fontSize: 15),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              Icon(Icons.location_on_outlined, size: 13, color: Colors.grey.shade500),
+                              const SizedBox(width: 3),
+                              Expanded(
+                                child: Text(
+                                  event.place.isNotEmpty ? event.place : 'No location',
+                                  style: TextStyle(fontSize: 13, color: Colors.grey.shade500),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                  if (event.category.isNotEmpty)
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: AppTheme.primaryBlue.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        event.category,
-                        style: const TextStyle(
-                          color: AppTheme.primaryBlue,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
+                  Padding(
+                    padding: const EdgeInsets.only(right: 14),
+                    child: Icon(Icons.chevron_right, color: Colors.grey.shade400),
+                  ),
                 ],
               ),
-            ).animate().fade(delay: Duration(milliseconds: 80 * index)).slideY(begin: 0.05);
-          },
-        );
-      },
+            ),
+          ).animate().fade(delay: Duration(milliseconds: 80 * index)).slideY(begin: 0.05);
+        },
+      ),
     );
   }
 }
 
-class _SettingsTab extends StatelessWidget {
+class _SettingsTab extends ConsumerWidget {
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return ListView(
@@ -373,8 +433,9 @@ class _SettingsTab extends StatelessWidget {
           context,
           icon: Icons.person_outline,
           title: 'Edit Profile',
-          subtitle: 'Photo, name, bio',
+          subtitle: 'Photo, name, gender',
           isDark: isDark,
+          onTap: () => context.push('/profile/edit'),
         ),
         _settingsTile(
           context,
@@ -388,8 +449,19 @@ class _SettingsTab extends StatelessWidget {
           context,
           icon: Icons.palette_outlined,
           title: 'Appearance',
-          subtitle: 'System theme active',
+          subtitle: ref.watch(themeModeProvider) == ThemeMode.system
+              ? 'System'
+              : (isDark ? 'Dark mode' : 'Light mode'),
           isDark: isDark,
+          onTap: () async {
+            final current = ref.read(themeModeProvider);
+            final next = switch (current) {
+              ThemeMode.system => ThemeMode.light,
+              ThemeMode.light => ThemeMode.dark,
+              ThemeMode.dark => ThemeMode.system,
+            };
+            await ref.read(themeModeProvider.notifier).setThemeMode(next);
+          },
         ),
         _settingsTile(
           context,
@@ -397,6 +469,7 @@ class _SettingsTab extends StatelessWidget {
           title: 'Privacy',
           subtitle: 'Visibility, data',
           isDark: isDark,
+          onTap: () => _showPrivacyInfo(context, isDark),
         ),
         _settingsTile(
           context,
@@ -404,6 +477,7 @@ class _SettingsTab extends StatelessWidget {
           title: 'About',
           subtitle: 'Version 2.0.0',
           isDark: isDark,
+          onTap: () => _showAboutInfo(context, isDark),
         ),
       ],
     );
@@ -442,6 +516,38 @@ class _SettingsTab extends StatelessWidget {
           HapticFeedback.selectionClick();
           onTap?.call();
         },
+      ),
+    );
+  }
+
+
+
+  void _showPrivacyInfo(BuildContext context, bool isDark) {
+    _showInfoSheet(context: context, isDark: isDark, icon: Icons.shield, title: 'Privacy', body: 'Your profile is visible to event hosts and attendees.\nYour email is never shared publicly.');
+  }
+
+  void _showAboutInfo(BuildContext context, bool isDark) {
+    _showInfoSheet(context: context, isDark: isDark, icon: Icons.info, title: 'We Invited v2.0.0', body: 'Discover events, invite friends, and manage RSVPs — all in one place.');
+  }
+
+  void _showInfoSheet({required BuildContext context, required bool isDark, required IconData icon, required String title, required String body}) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        decoration: BoxDecoration(color: isDark ? AppTheme.darkSurface : Colors.white, borderRadius: const BorderRadius.vertical(top: Radius.circular(24))),
+        padding: const EdgeInsets.fromLTRB(24, 12, 24, 40),
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2))),
+          const SizedBox(height: 24),
+          Icon(icon, size: 40, color: AppTheme.primaryBlue),
+          const SizedBox(height: 16),
+          Text(title, style: Theme.of(ctx).textTheme.titleLarge),
+          const SizedBox(height: 8),
+          Text(body, style: TextStyle(color: Colors.grey.shade600, fontSize: 14), textAlign: TextAlign.center),
+          const SizedBox(height: 24),
+          SizedBox(width: double.infinity, child: OutlinedButton(onPressed: () => Navigator.pop(ctx), style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))), child: const Text('Close'))),
+        ]),
       ),
     );
   }

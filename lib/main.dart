@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'src/routing/app_router.dart';
 import 'src/constants/app_theme.dart';
 import 'src/utils/api_client.dart';
+import 'src/constants/theme_provider.dart';
 
 // import 'firebase_options.dart'; // Uncomment when generated via flutterfire configure
 
@@ -24,12 +25,13 @@ class MyApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(appRouterProvider);
+    final themeMode = ref.watch(themeModeProvider);
 
     return MaterialApp.router(
       title: 'We Invited V2',
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
-      themeMode: ThemeMode.system,
+      themeMode: themeMode,
       routerConfig: router,
       debugShowCheckedModeBanner: false,
     );

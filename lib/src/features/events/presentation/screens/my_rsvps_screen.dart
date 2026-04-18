@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../constants/app_theme.dart';
 import '../../domain/rsvp_model.dart';
+import '../../data/post_repository.dart';
 import '../../presentation/controllers/rsvp_controller.dart';
 
 class MyRSVPsScreen extends ConsumerStatefulWidget {
@@ -109,7 +111,9 @@ class _MyRSVPsScreenState extends ConsumerState<MyRSVPsScreen> {
       );
     }
 
-    return ListView.builder(
+    return RefreshIndicator(
+      onRefresh: _loadData,
+      child: ListView.builder(
       padding: const EdgeInsets.only(top: 24, left: 24, right: 24, bottom: 120),
       itemCount: _rsvps.length,
       itemBuilder: (context, index) {
@@ -194,6 +198,7 @@ class _MyRSVPsScreenState extends ConsumerState<MyRSVPsScreen> {
           ),
         ).animate().fade(delay: Duration(milliseconds: 60 * index)).slideY(begin: 0.05);
       },
+      ),
     );
   }
 
@@ -205,7 +210,7 @@ class _MyRSVPsScreenState extends ConsumerState<MyRSVPsScreen> {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (context) => Container(
+      builder: (sheetContext) => Container(
         decoration: BoxDecoration(
           color: isDark ? AppTheme.darkSurface : Colors.white,
           borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
@@ -264,16 +269,45 @@ class _MyRSVPsScreenState extends ConsumerState<MyRSVPsScreen> {
               ),
             ],
             const SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton(
-                onPressed: () => Navigator.pop(context),
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.pop(sheetContext),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    child: const Text('Close'),
+                  ),
                 ),
-                child: const Text('Close'),
-              ),
+                if (rsvp.eventId.isNotEmpty) ...[
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      icon: const Icon(Icons.open_in_new, size: 16),
+                      label: const Text('View Event'),
+                      onPressed: () async {
+                        Navigator.pop(sheetContext);
+                        final router = GoRouter.of(context);
+                        final messenger = ScaffoldMessenger.of(context);
+                        try {
+                          final post = await ref.read(postRepositoryProvider).getEventById(rsvp.eventId);
+                          router.push('/feed/event', extra: post);
+                        } catch (_) {
+                          messenger.showSnackBar(
+                            const SnackBar(content: Text('Could not load event')),
+                          );
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                    ),
+                  ),
+                ],
+              ],
             ),
           ],
         ),

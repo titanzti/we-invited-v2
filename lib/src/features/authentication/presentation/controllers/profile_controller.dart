@@ -10,33 +10,25 @@ part 'profile_controller.g.dart';
 class ProfileController extends _$ProfileController {
   @override
   FutureOr<UserModel?> build() async {
-    // Watch current auth user
     final authState = ref.watch(authStateProvider);
-    final email = authState.value?.email;
+    final user = authState.value;
+    if (user == null) return null;
 
-    if (email == null || email.isEmpty) {
-      return null;
-    }
-
-    return ref.watch(userRepositoryProvider).getProfile(email);
+    return user;
   }
 
   Future<void> updateProfile({
     required String name,
-    required String gender,
+    String? gender,
   }) async {
-    final user = state.value;
-    if (user == null || user.email == null) return;
-    
     state = const AsyncValue.loading();
 
     try {
-      await ref.read(userRepositoryProvider).updateProfile(
-        email: user.email!,
+      final updated = await ref.read(userRepositoryProvider).updateProfile(
         name: name,
         gender: gender,
       );
-      // Refresh the provider
+      ref.read(authStateProvider.notifier).setUser(updated);
       ref.invalidateSelf();
     } catch (e, st) {
       state = AsyncValue.error(e, st);
@@ -44,16 +36,20 @@ class ProfileController extends _$ProfileController {
   }
 
   Future<void> updateProfilePhoto(File imageFile) async {
-    final user = state.value;
-    if (user == null || user.email == null) return;
-
     state = const AsyncValue.loading();
     try {
-      await ref.read(userRepositoryProvider).updateProfilePhoto(
-        user.email!,
-        user.uid,
-        imageFile,
-      );
+      final photoUrl = await ref.read(userRepositoryProvider).updateProfilePhoto(imageFile);
+      final current = state.value;
+      if (current != null) {
+        final updated = UserModel(
+          uid: current.uid,
+          email: current.email,
+          name: current.name,
+          gender: current.gender,
+          profilePhoto: photoUrl,
+        );
+        ref.read(authStateProvider.notifier).setUser(updated);
+      }
       ref.invalidateSelf();
     } catch (e, st) {
       state = AsyncValue.error(e, st);

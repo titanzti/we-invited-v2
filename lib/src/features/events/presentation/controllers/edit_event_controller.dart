@@ -2,14 +2,15 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../data/post_repository.dart';
 import 'feed_controller.dart';
 
-part 'create_event_controller.g.dart';
+part 'edit_event_controller.g.dart';
 
 @riverpod
-class CreateEventController extends _$CreateEventController {
+class EditEventController extends _$EditEventController {
   @override
   FutureOr<void> build() {}
 
-  Future<bool> createEvent({
+  Future<bool> updateEvent({
+    required String eventId,
     required String title,
     required String location,
     required String category,
@@ -25,7 +26,8 @@ class CreateEventController extends _$CreateEventController {
     state = const AsyncValue.loading();
     try {
       final repository = ref.read(postRepositoryProvider);
-      await repository.createPost(
+      await repository.updateEvent(
+        eventId: eventId,
         title: title,
         location: location,
         category: category,

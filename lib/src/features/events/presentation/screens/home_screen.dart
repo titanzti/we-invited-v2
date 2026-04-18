@@ -24,6 +24,8 @@ class HomeScreen extends ConsumerStatefulWidget {
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   String _selectedCategory = 'All';
   final TextEditingController _searchController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
+  final MapController _mapController = MapController();
   Timer? _debounce;
   bool _isSearching = false;
   bool _isMapView = true;
@@ -45,9 +47,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   };
 
   @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
+  }
+
+  @override
   void dispose() {
     _searchController.dispose();
     _debounce?.cancel();
+    _scrollController
+      ..removeListener(_onScroll)
+      ..dispose();
     super.dispose();
   }
 
@@ -57,11 +68,32 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     await ref.read(feedControllerProvider.future);
   }
 
+  void _onScroll() {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 300) {
+      ref.read(feedControllerProvider.notifier).loadMore();
+    }
+  }
+
   void _onSearchChanged(String query) {
     _debounce?.cancel();
     _debounce = Timer(const Duration(milliseconds: 400), () {
       setState(() {});
+      _recenterMap();
     });
+  }
+
+  void _recenterMap() {
+    final feedData = ref.read(feedControllerProvider).valueOrNull;
+    if (feedData == null) return;
+    final filtered = _filterPosts(feedData.posts);
+    final withCoords = filtered
+        .where((p) => p.latitude != null && p.longitude != null)
+        .toList();
+    final target = withCoords.isNotEmpty
+        ? LatLng(withCoords.first.latitude!, withCoords.first.longitude!)
+        : const LatLng(13.7563, 100.5018);
+    _mapController.move(target, 13);
   }
 
   List<PostModel> _filterPosts(List<PostModel> posts) {
@@ -95,26 +127,30 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   // ============== MAP VIEW ==============
-  Widget _buildMapView(AsyncValue<List<PostModel>> feedState, bool isDark) {
+  Widget _buildMapView(AsyncValue<FeedState> feedState, bool isDark) {
     return Stack(
       children: [
-        // Full screen map
         feedState.when(
-          data: (posts) {
-            final filtered = _filterPosts(posts);
-            final eventsWithCoords = filtered.where((p) => p.latitude != null && p.longitude != null).toList();
-            final center = eventsWithCoords.isNotEmpty
+          data: (state) {
+            final filtered = _filterPosts(state.posts);
+            final eventsWithCoords =
+                filtered.where((p) => p.latitude != null && p.longitude != null).toList();
+            final initialCenter = eventsWithCoords.isNotEmpty
                 ? LatLng(eventsWithCoords.first.latitude!, eventsWithCoords.first.longitude!)
                 : const LatLng(13.7563, 100.5018);
 
             return FlutterMap(
+              mapController: _mapController,
               options: MapOptions(
-                initialCenter: center,
+                initialCenter: initialCenter,
                 initialZoom: 13,
                 onTap: (_, __) => setState(() => _selectedMapEvent = null),
               ),
               children: [
-                TileLayer(urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png', userAgentPackageName: 'com.weinvited.app'),
+                TileLayer(
+                  urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                  userAgentPackageName: 'com.weinvited.app',
+                ),
                 MarkerLayer(
                   markers: [
                     for (final post in eventsWithCoords)
@@ -137,7 +173,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                     color: isSelected ? AppTheme.primaryBlue : Colors.white,
                                     shape: BoxShape.circle,
                                     border: Border.all(color: AppTheme.primaryBlue, width: 2.5),
-                                    boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 8, offset: const Offset(0, 3))],
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withValues(alpha: 0.2),
+                                        blurRadius: 8,
+                                        offset: const Offset(0, 3),
+                                      ),
+                                    ],
                                   ),
                                   child: Icon(
                                     _categoryIcons[post.category] ?? Icons.event,
@@ -153,8 +195,23 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               ],
             );
           },
-          loading: () => Container(color: isDark ? AppTheme.darkBackground : Colors.grey.shade200, child: const Center(child: CircularProgressIndicator())),
-          error: (_, __) => Container(color: isDark ? AppTheme.darkBackground : Colors.grey.shade200, child: Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(Icons.cloud_off, size: 48, color: Colors.grey.shade400), const SizedBox(height: 8), TextButton(onPressed: _onRefresh, child: const Text('Retry'))]))),
+          loading: () => Container(
+            color: isDark ? AppTheme.darkBackground : Colors.grey.shade200,
+            child: const Center(child: CircularProgressIndicator()),
+          ),
+          error: (_, __) => Container(
+            color: isDark ? AppTheme.darkBackground : Colors.grey.shade200,
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.cloud_off, size: 48, color: Colors.grey.shade400),
+                  const SizedBox(height: 8),
+                  TextButton(onPressed: _onRefresh, child: const Text('Retry')),
+                ],
+              ),
+            ),
+          ),
         ),
 
         // Overlay: header and chips
@@ -207,11 +264,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   // ============== LIST VIEW ==============
-  Widget _buildListView(AsyncValue<List<PostModel>> feedState, bool isDark) {
+  Widget _buildListView(AsyncValue<FeedState> feedState, bool isDark) {
     return RefreshIndicator.adaptive(
       onRefresh: _onRefresh,
       color: AppTheme.primaryBlue,
       child: CustomScrollView(
+        controller: _scrollController,
         physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
         slivers: [
           SliverToBoxAdapter(
@@ -233,20 +291,44 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           SliverToBoxAdapter(child: _buildCategoryChips(isDark)),
           const SliverToBoxAdapter(child: SizedBox(height: 20)),
           feedState.when(
-            data: (posts) {
-              final filtered = _filterPosts(posts);
+            data: (state) {
+              final filtered = _filterPosts(state.posts);
               if (filtered.isEmpty) {
-                return SliverFillRemaining(child: Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(Icons.event_busy, size: 64, color: Colors.grey.shade300), const SizedBox(height: 16), Text(_searchController.text.isNotEmpty ? 'No events match your search' : _selectedCategory != 'All' ? 'No $_selectedCategory events right now' : 'No events happening right now', style: TextStyle(color: Colors.grey.shade500, fontSize: 16)), const SizedBox(height: 8), Text('Pull down to refresh', style: TextStyle(color: Colors.grey.shade400, fontSize: 13))])));
+                return SliverFillRemaining(
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.event_busy, size: 64, color: Colors.grey.shade300),
+                        const SizedBox(height: 16),
+                        Text(
+                          _searchController.text.isNotEmpty
+                              ? 'No events match your search'
+                              : _selectedCategory != 'All'
+                                  ? 'No $_selectedCategory events right now'
+                                  : 'No events happening right now',
+                          style: TextStyle(color: Colors.grey.shade500, fontSize: 16),
+                        ),
+                        const SizedBox(height: 8),
+                        Text('Pull down to refresh',
+                            style: TextStyle(color: Colors.grey.shade400, fontSize: 13)),
+                      ],
+                    ),
+                  ),
+                );
               }
               return SliverPadding(
-                padding: const EdgeInsets.fromLTRB(20, 0, 20, 100),
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
                 sliver: SliverList(
                   delegate: SliverChildBuilderDelegate(
                     (context, index) {
                       final post = filtered[index];
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 20),
-                        child: PremiumPostCard(post: post).animate().fade(delay: Duration(milliseconds: 80 * (index % 5))).slideY(begin: 0.08),
+                        child: PremiumPostCard(post: post)
+                            .animate()
+                            .fade(delay: Duration(milliseconds: 80 * (index % 5)))
+                            .slideY(begin: 0.08),
                       );
                     },
                     childCount: filtered.length,
@@ -255,7 +337,30 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               );
             },
             loading: () => const SliverFillRemaining(child: FeedSkeletonLoader()),
-            error: (err, st) => SliverFillRemaining(child: Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(Icons.cloud_off, size: 48, color: Colors.grey.shade300), const SizedBox(height: 16), Text('Failed to load events', style: TextStyle(color: Colors.grey.shade600)), const SizedBox(height: 8), TextButton(onPressed: _onRefresh, child: const Text('Tap to retry'))]))),
+            error: (err, st) => SliverFillRemaining(
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.cloud_off, size: 48, color: Colors.grey.shade300),
+                    const SizedBox(height: 16),
+                    Text('Failed to load events',
+                        style: TextStyle(color: Colors.grey.shade600)),
+                    const SizedBox(height: 8),
+                    TextButton(onPressed: _onRefresh, child: const Text('Tap to retry')),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          // Load more indicator
+          SliverToBoxAdapter(
+            child: feedState.valueOrNull?.isLoadingMore == true
+                ? const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 24),
+                    child: Center(child: CircularProgressIndicator()),
+                  )
+                : const SizedBox(height: 100),
           ),
         ],
       ),
@@ -380,6 +485,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             onTap: () {
               HapticFeedback.selectionClick();
               setState(() => _selectedCategory = cat);
+              _recenterMap();
             },
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 250),

@@ -6,6 +6,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../domain/user_model.dart';
 import '../../../utils/api_client.dart';
 import '../../../utils/api_response.dart';
+import '../../../exceptions/app_exception.dart';
 
 part 'user_repository.g.dart';
 
@@ -25,8 +26,10 @@ class UserRepository {
         (data) => UserModel.fromJson(data),
       );
       return result.data;
+    } on DioException catch (e) {
+      throw AppException.fromDio(e);
     } catch (e) {
-      return null;
+      throw UnknownException('Failed to load profile: $e');
     }
   }
 
@@ -47,8 +50,10 @@ class UserRepository {
         (data) => UserModel.fromJson(data),
       );
       return result.data!;
+    } on DioException catch (e) {
+      throw AppException.fromDio(e);
     } catch (e) {
-      throw Exception('Failed to update profile: $e');
+      throw UnknownException('Failed to update profile: $e');
     }
   }
 
@@ -83,8 +88,10 @@ class UserRepository {
         throw Exception('Avatar upload response did not include a URL');
       }
       return url;
+    } on DioException catch (e) {
+      throw AppException.fromDio(e);
     } catch (e) {
-      throw Exception('Failed to upload photo: $e');
+      throw UnknownException('Failed to upload photo: $e');
     }
   }
 }

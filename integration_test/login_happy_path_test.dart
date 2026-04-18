@@ -4,6 +4,7 @@ import 'package:integration_test/integration_test.dart';
 import 'package:we_invited_v2/main.dart' as app;
 import 'package:we_invited_v2/src/common_widgets/global_premium_widgets.dart';
 import 'package:we_invited_v2/src/utils/api_client.dart';
+import 'test_helpers.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -15,11 +16,13 @@ void main() {
       
       app.main();
       
-      // Wait for splash and transition to Login Screen
-      for (int i = 0; i < 50; i++) {
-        await tester.pump(const Duration(milliseconds: 100));
-        if (find.text('Welcome\nBack!').evaluate().isNotEmpty) break;
-      }
+      // Wait for login screen
+      final loginFound = await TestHelpers.waitForWidget(
+        tester,
+        find.text('Welcome\nBack!'),
+        timeout: const Duration(seconds: 10),
+      );
+      expect(loginFound, isTrue, reason: 'Should show login screen');
 
       // Type in credentials
       final emailField = find.byType(TextFormField).at(0);
@@ -33,17 +36,15 @@ void main() {
       // 3. Tap Sign In
       await tester.tap(find.byType(AnimatedPrimaryButton));
       
-      // Implicitly waits for networking...
-      for (int i = 0; i < 50; i++) {
-        await tester.pump(const Duration(milliseconds: 100));
-        if (find.text('Discover').evaluate().isNotEmpty || find.byType(SnackBar).evaluate().isNotEmpty) break;
-      }
-
-      // Explicit assertion: Must go to 'Discover' successfully.
-      final isHome = find.text('Discover').evaluate().isNotEmpty;
+      // Wait for navigation to Home/Discover
+      final homeFound = await TestHelpers.waitForWidget(
+        tester,
+        find.text('Discover'),
+        timeout: const Duration(seconds: 10),
+      );
       
       expect(
-        isHome, 
+        homeFound, 
         isTrue, 
         reason: 'Happy path failed! Backend might be down or credentials test@example.com rejected.'
       );

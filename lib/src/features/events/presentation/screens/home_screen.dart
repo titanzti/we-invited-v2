@@ -10,6 +10,7 @@ import 'dart:async';
 
 import '../controllers/feed_controller.dart';
 import '../../../../constants/app_theme.dart';
+import '../../../../constants/app_constants.dart';
 import '../../domain/post_model.dart';
 import '../../../../common_widgets/feed_skeleton_loader.dart';
 import 'package:intl/intl.dart';
@@ -70,14 +71,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   void _onScroll() {
     if (_scrollController.position.pixels >=
-        _scrollController.position.maxScrollExtent - 300) {
+        _scrollController.position.maxScrollExtent - AppConstants.loadMoreThreshold) {
       ref.read(feedControllerProvider.notifier).loadMore();
     }
   }
 
   void _onSearchChanged(String query) {
     _debounce?.cancel();
-    _debounce = Timer(const Duration(milliseconds: 400), () {
+    _debounce = Timer(const Duration(milliseconds: AppConstants.searchDebounceMs), () {
       setState(() {});
       if (_isMapView) _recenterMap();
     });
@@ -93,7 +94,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         .toList();
     final target = withCoords.isNotEmpty
         ? LatLng(withCoords.first.latitude!, withCoords.first.longitude!)
-        : const LatLng(13.7563, 100.5018);
+        : const LatLng(AppConstants.defaultLatitude, AppConstants.defaultLongitude);
     _mapController.move(target, 13);
   }
 
@@ -138,7 +139,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 filtered.where((p) => p.latitude != null && p.longitude != null).toList();
             final initialCenter = eventsWithCoords.isNotEmpty
                 ? LatLng(eventsWithCoords.first.latitude!, eventsWithCoords.first.longitude!)
-                : const LatLng(13.7563, 100.5018);
+                : const LatLng(AppConstants.defaultLatitude, AppConstants.defaultLongitude);
 
             return FlutterMap(
               mapController: _mapController,
@@ -164,6 +165,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                               width: isSelected ? 52 : 44,
                               height: isSelected ? 52 : 44,
                               child: GestureDetector(
+                                key: ValueKey('event_marker_${post.postid}'),
                                 onTap: () {
                                   HapticFeedback.lightImpact();
                                   setState(() => _selectedMapEvent = post);
@@ -326,7 +328,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       final post = filtered[index];
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 20),
-                        child: PremiumPostCard(post: post)
+                        child: PremiumPostCard(
+                          key: ValueKey('event_card_${post.postid}'),
+                          post: post,
+                        )
                             .animate()
                             .fade(delay: Duration(milliseconds: 80 * (index % 5)))
                             .slideY(begin: 0.08),
@@ -386,6 +391,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 Text('Events', style: Theme.of(context).textTheme.displayMedium?.copyWith(fontSize: 28)),
               ]),
               GestureDetector(
+                key: const ValueKey('search_toggle_button'),
                 onTap: () {
                   setState(() => _isSearching = !_isSearching);
                   if (!_isSearching) _searchController.clear();
@@ -438,6 +444,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           _buildViewToggle(isDark),
           const SizedBox(width: 10),
           GestureDetector(
+            key: const ValueKey('view_toggle_fab'),
             onTap: () {
               setState(() => _isSearching = !_isSearching);
               if (!_isSearching) _searchController.clear();
@@ -483,6 +490,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           final cat = _categories[index];
           final isSelected = cat == _selectedCategory;
           return GestureDetector(
+            key: ValueKey('category_chip_$cat'),
             onTap: () {
               HapticFeedback.selectionClick();
               setState(() => _selectedCategory = cat);

@@ -15,7 +15,6 @@ import '../../../events/data/post_repository.dart';
 import '../../../events/domain/post_model.dart';
 import '../../../events/presentation/screens/my_rsvps_screen.dart';
 import '../../../events/presentation/screens/my_invites_screen.dart';
-import '../../../../common_widgets/premium_post_card.dart';
 import '../../../../constants/theme_provider.dart';
 import '../../../../exceptions/app_exception.dart';
 
@@ -156,12 +155,25 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with TickerProvid
   String _getUserInitials(UserModel? user) {
     if (user == null) return 'U';
     final name = user.name;
-    if (name == null || name.isEmpty) return 'U';
-    final parts = name.trim().split(' ');
+    if (name == null) return 'U';
+    final trimmed = name.trim();
+    if (trimmed.isEmpty) return 'U';
+    final parts = trimmed.split(RegExp(r'\s+'));
     if (parts.length >= 2) {
-      return '${parts[0][0]}${parts[parts.length - 1][0]}'.toUpperCase();
+      return '${parts.first[0]}${parts.last[0]}'.toUpperCase();
     }
-    return name[0].toUpperCase();
+    return trimmed[0].toUpperCase();
+  }
+
+  Future<List<int>> _loadStats(WidgetRef ref) async {
+    try {
+      final events = await ref.read(postRepositoryProvider).getMyEvents();
+      // For now, RSVPs and Invites screens manage their own data
+      // Return events count and placeholder for others
+      return [events.length, 0, 0];
+    } catch (e) {
+      return [0, 0, 0];
+    }
   }
 
   @override
@@ -172,72 +184,70 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with TickerProvid
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF09090B) : const Color(0xFFF8FAFC),
-      body: CustomScrollView(
+      body: NestedScrollView(
         physics: const BouncingScrollPhysics(),
-        slivers: [
-          // Ultra Modern Hero Header
-          SliverAppBar(
-            expandedHeight: 330,
-            pinned: true,
-            stretch: true,
-            backgroundColor: isDark ? const Color(0xFF09090B) : const Color(0xFFF8FAFC),
-            elevation: 0,
-            flexibleSpace: FlexibleSpaceBar(
-              stretchModes: const [
-                StretchMode.blurBackground,
-                StretchMode.zoomBackground,
-              ],
-              titlePadding: EdgeInsets.zero,
-              background: _buildUltraModernHeader(user, isDark, context),
-            ),
-          ),
-
-          // High-End Segmented Control Tab Bar
-          SliverPersistentHeader(
-            pinned: true,
-            delegate: _ModernTabDelegate(
-              TabBar(
-                controller: _tabController,
-                dividerColor: Colors.transparent,
-                indicator: BoxDecoration(
-                  color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.05),
-                  borderRadius: BorderRadius.circular(100),
-                ),
-                indicatorSize: TabBarIndicatorSize.tab,
-                labelColor: isDark ? Colors.white : const Color(0xFF0F172A),
-                unselectedLabelColor: isDark ? Colors.grey.shade600 : const Color(0xFF64748B),
-                labelStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
-                unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500, fontSize: 13),
-                tabs: const [
-                  Tab(text: 'Events'),
-                  Tab(text: 'RSVPs'),
-                  Tab(text: 'Invites'),
-                  Tab(text: 'Settings'),
+        headerSliverBuilder: (context, innerBoxIsScrolled) {
+          return [
+            // Ultra Modern Hero Header
+            SliverAppBar(
+              expandedHeight: 330,
+              pinned: true,
+              stretch: true,
+              backgroundColor: isDark ? const Color(0xFF09090B) : const Color(0xFFF8FAFC),
+              elevation: 0,
+              flexibleSpace: FlexibleSpaceBar(
+                stretchModes: const [
+                  StretchMode.blurBackground,
+                  StretchMode.zoomBackground,
                 ],
+                titlePadding: EdgeInsets.zero,
+                background: _buildUltraModernHeader(user, isDark, context, ref),
               ),
-              isDark: isDark,
             ),
-          ),
 
-          // Tab Content
-          SliverFillRemaining(
-            child: TabBarView(
-              controller: _tabController,
-              physics: const BouncingScrollPhysics(),
-              children: [
-                _MyEventsTab(),
-                const MyRSVPsScreen(),
-                const MyInvitesScreen(),
-                _SettingsTab(),
-              ],
+            // High-End Segmented Control Tab Bar
+            SliverPersistentHeader(
+              pinned: true,
+              delegate: _ModernTabDelegate(
+                TabBar(
+                  controller: _tabController,
+                  dividerColor: Colors.transparent,
+                  indicator: BoxDecoration(
+                    color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.05),
+                    borderRadius: BorderRadius.circular(100),
+                  ),
+                  indicatorSize: TabBarIndicatorSize.tab,
+                  labelColor: isDark ? Colors.white : const Color(0xFF0F172A),
+                  unselectedLabelColor: isDark ? Colors.grey.shade600 : const Color(0xFF64748B),
+                  labelStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
+                  unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500, fontSize: 13),
+                  tabs: const [
+                    Tab(text: 'Events'),
+                    Tab(text: 'RSVPs'),
+                    Tab(text: 'Invites'),
+                    Tab(text: 'Settings'),
+                  ],
+                ),
+                isDark: isDark,
+              ),
             ),
-          ),
-        ],
+          ];
+        },
+        body: TabBarView(
+          controller: _tabController,
+          physics: const BouncingScrollPhysics(),
+          children: [
+            _MyEventsTab(),
+            const MyRSVPsScreen(),
+            const MyInvitesScreen(),
+            _SettingsTab(),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildUltraModernHeader(UserModel? user, bool isDark, BuildContext context) {
+  Widget _buildUltraModernHeader(UserModel? user, bool isDark, BuildContext context, WidgetRef ref) {
     return Stack(
       fit: StackFit.expand,
       children: [
@@ -414,12 +424,16 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with TickerProvid
                       size: 14,
                     ),
                     const SizedBox(width: 6),
-                    Text(
-                      user?.email ?? 'Join our community',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                        color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
+                    Flexible(
+                      child: Text(
+                        user?.email ?? 'Join our community',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                          color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                   ],
@@ -432,15 +446,21 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with TickerProvid
                 opacity: _statsController,
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 48),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      _buildPureStat('0', 'EVENTS', isDark, () => _tabController.animateTo(0)),
-                      _buildPureDivider(isDark),
-                      _buildPureStat('0', 'RSVPS', isDark, () => _tabController.animateTo(1)),
-                      _buildPureDivider(isDark),
-                      _buildPureStat('0', 'INVITES', isDark, () => _tabController.animateTo(2)),
-                    ],
+                  child: FutureBuilder<List<int>>(
+                    future: _loadStats(ref),
+                    builder: (context, snapshot) {
+                      final counts = snapshot.data ?? [0, 0, 0];
+                      return Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          _buildPureStat('${counts[0]}', 'EVENTS', isDark, () => _tabController.animateTo(0)),
+                          _buildPureDivider(isDark),
+                          _buildPureStat('${counts[1]}', 'RSVPS', isDark, () => _tabController.animateTo(1)),
+                          _buildPureDivider(isDark),
+                          _buildPureStat('${counts[2]}', 'INVITES', isDark, () => _tabController.animateTo(2)),
+                        ],
+                      );
+                    },
                   ),
                 ),
               ),
@@ -624,7 +644,12 @@ class _SettingsTab extends ConsumerWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return ListView(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.only(
+        left: 20,
+        right: 20,
+        top: 20,
+        bottom: MediaQuery.of(context).padding.bottom + 100,
+      ),
       children: [
         _buildSettingsSection(
           context,

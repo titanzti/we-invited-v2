@@ -215,7 +215,7 @@ class _MyRSVPsScreenState extends ConsumerState<MyRSVPsScreen> {
           color: isDark ? AppTheme.darkSurface : Colors.white,
           borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
         ),
-        padding: const EdgeInsets.fromLTRB(24, 12, 24, 40),
+        padding: const EdgeInsets.fromLTRB(24, 12, 24, 100),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [

@@ -32,23 +32,23 @@ class MainScaffold extends StatelessWidget {
           Positioned(
             left: 24,
             right: 24,
-            bottom: 24,
+            bottom: 8, // reduced from 24
             child: SafeArea(
               bottom: true,
               child: LiquidGlassLayer(
                 settings: LiquidGlassSettings(
-                  thickness: 24, // Extreme warping
-                  blur: 25, // High frost
-                  glassColor: AppTheme.surfaceWhite.withValues(alpha: 0.15), // Highly transparent so we see the glass effect!
-                  lightIntensity: 2.0, // High gloss
+                  thickness: 16, // Reduced 
+                  blur: 25, 
+                  glassColor: AppTheme.surfaceWhite.withValues(alpha: 0.15), 
+                  lightIntensity: 2.0, 
                   ambientStrength: 1.0,
-                  refractiveIndex: 1.6, // Strong refraction
+                  refractiveIndex: 1.6, 
                 ),
                 child: LiquidGlass(
                   shape: LiquidRoundedSuperellipse(borderRadius: 36),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
-                    constraints: const BoxConstraints(minHeight: 76),
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 6),
+                    constraints: const BoxConstraints(minHeight: 64), // reduced from 76
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
@@ -114,24 +114,24 @@ class _NavBarItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (isProminent) {
-      // The massive dark center + icon
+      // The prominent center button
       return GestureDetector(
         onTap: onTap,
         behavior: HitTestBehavior.opaque,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           curve: Curves.easeOutQuart,
-          width: 64,
-          height: 56,
+          width: 56, // reduced from 64
+          height: 48, // reduced from 56
           decoration: BoxDecoration(
             color: AppTheme.primaryDark,
-            borderRadius: BorderRadius.circular(24),
+            borderRadius: BorderRadius.circular(20), // reduced from 24
           ),
           child: const Center(
             child: Icon(
               Icons.add,
               color: AppTheme.surfaceWhite,
-              size: 28,
+              size: 26, // reduced from 28
             ),
           ),
         ),

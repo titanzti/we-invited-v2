@@ -65,14 +65,19 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     setState(() => _isSaving = true);
 
     try {
+      final controller = ref.read(profileControllerProvider.notifier);
       if (_pickedImage != null) {
-        await ref.read(profileControllerProvider.notifier).updateProfilePhoto(_pickedImage!);
+        await controller.updateProfilePhoto(_pickedImage!);
+        final photoState = ref.read(profileControllerProvider);
+        if (photoState.hasError) throw photoState.error!;
       }
 
-      await ref.read(profileControllerProvider.notifier).updateProfile(
+      await controller.updateProfile(
         name: name,
         gender: _selectedGender,
       );
+      final profileState = ref.read(profileControllerProvider);
+      if (profileState.hasError) throw profileState.error!;
 
       if (mounted) {
         HapticFeedback.heavyImpact();
@@ -126,7 +131,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                               : null),
                       child: _pickedImage == null && (user?.profilePhoto == null || user!.profilePhoto!.isEmpty)
                           ? Text(
-                              (user?.name ?? 'U')[0].toUpperCase(),
+                              ((user?.name?.isNotEmpty ?? false) ? user!.name![0] : 'U').toUpperCase(),
                               style: const TextStyle(fontSize: 36, fontWeight: FontWeight.bold, color: AppTheme.primaryBlue),
                             )
                           : null,

@@ -79,11 +79,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     _debounce?.cancel();
     _debounce = Timer(const Duration(milliseconds: 400), () {
       setState(() {});
-      _recenterMap();
+      if (_isMapView) _recenterMap();
     });
   }
 
   void _recenterMap() {
+    if (!_isMapView) return;
     final feedData = ref.read(feedControllerProvider).valueOrNull;
     if (feedData == null) return;
     final filtered = _filterPosts(feedData.posts);
@@ -485,7 +486,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             onTap: () {
               HapticFeedback.selectionClick();
               setState(() => _selectedCategory = cat);
-              _recenterMap();
+              if (_isMapView) _recenterMap();
             },
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 250),

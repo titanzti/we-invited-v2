@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../utils/api_client.dart';
 import '../../../utils/api_response.dart';
@@ -59,8 +60,11 @@ class RSVPRepository {
         (data) => RSVPModel.fromJson(data),
       );
       return result.data;
-    } catch (_) {
-      return null;
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 404) return null;
+      throw Exception('Failed to load your RSVP: ${e.message}');
+    } catch (e) {
+      throw Exception('Failed to load your RSVP: $e');
     }
   }
 

@@ -40,7 +40,7 @@ sealed class AppException implements Exception {
       }
     }
 
-    return UnknownException('An unexpected error occurred: $e');
+    return const UnknownException('An unexpected error occurred. Please try again.');
   }
 }
 

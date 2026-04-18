@@ -99,8 +99,12 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
             }
             return;
           }
-        } catch (_) {
-          // Ignore join failure (likely already joined)
+        } catch (e) {
+          if (mounted) {
+            setState(() => _isJoining = false);
+            PremiumToast.show(context, 'Failed to join event. Try again.', isError: true);
+          }
+          return;
         }
       }
 

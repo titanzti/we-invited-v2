@@ -28,11 +28,18 @@ class _MyInvitesScreenState extends ConsumerState<MyInvitesScreen> {
   }
 
   Future<void> _loadInvites() async {
+    if (mounted) {
+      setState(() {
+        _isLoading = true;
+        _error = null;
+      });
+    }
     try {
       final invites = await ref.read(rsvpControllerProvider.notifier).getMyInvites();
       if (mounted) {
         setState(() {
           _invites = invites;
+          _error = null;
           _isLoading = false;
         });
       }

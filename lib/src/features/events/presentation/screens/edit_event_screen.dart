@@ -81,10 +81,14 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
   Future<void> _pickDate({required bool isStart}) async {
     HapticFeedback.selectionClick();
     final now = DateTime.now();
+    final existingDate = isStart ? _startDate : _endDate;
+    final firstAllowedDate = existingDate != null && existingDate.isBefore(now)
+        ? DateTime(existingDate.year, existingDate.month, existingDate.day)
+        : DateTime(now.year, now.month, now.day);
     final picked = await showDatePicker(
       context: context,
-      initialDate: (isStart ? _startDate : _endDate) ?? now,
-      firstDate: now,
+      initialDate: existingDate ?? now,
+      firstDate: firstAllowedDate,
       lastDate: now.add(const Duration(days: 365)),
       builder: (context, child) {
         return Theme(
@@ -166,7 +170,15 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
     if (_pickedImage != null) {
       try {
         imageUrl = await ref.read(postRepositoryProvider).uploadEventImage(_pickedImage!);
-      } catch (_) {}
+        if (imageUrl == null || imageUrl.isEmpty) {
+          throw Exception('Image upload returned no URL');
+        }
+      } catch (e) {
+        if (mounted) {
+          PremiumToast.show(context, 'Failed to upload cover photo', isError: true);
+        }
+        return;
+      }
     }
     final success = await ref
         .read(editEventControllerProvider.notifier)

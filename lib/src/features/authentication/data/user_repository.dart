@@ -55,11 +55,18 @@ class UserRepository {
   Future<String> updateProfilePhoto(File file) async {
     try {
       final fileName = file.path.split('/').last;
+      final extension = fileName.split('.').last.toLowerCase();
+      final mediaType = switch (extension) {
+        'jpg' || 'jpeg' => MediaType('image', 'jpeg'),
+        'png' => MediaType('image', 'png'),
+        'webp' => MediaType('image', 'webp'),
+        _ => MediaType('application', 'octet-stream'),
+      };
       final formData = FormData.fromMap({
         'avatar': await MultipartFile.fromFile(
           file.path,
           filename: fileName,
-          contentType: MediaType('image', 'png'),
+          contentType: mediaType,
         ),
       });
 
@@ -71,7 +78,11 @@ class UserRepository {
         response.data,
         (data) => data as Map<String, dynamic>,
       );
-      return result.data?['url'] ?? '';
+      final url = result.data?['url'] as String?;
+      if (url == null || url.isEmpty) {
+        throw Exception('Avatar upload response did not include a URL');
+      }
+      return url;
     } catch (e) {
       throw Exception('Failed to upload photo: $e');
     }

@@ -144,7 +144,15 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
     if (_pickedImage != null) {
       try {
         imageUrl = await ref.read(postRepositoryProvider).uploadEventImage(_pickedImage!);
-      } catch (_) {}
+        if (imageUrl == null || imageUrl.isEmpty) {
+          throw Exception('Image upload returned no URL');
+        }
+      } catch (e) {
+        if (mounted) {
+          PremiumToast.show(context, 'Failed to upload image. Please try again.', isError: true);
+        }
+        return;
+      }
     }
 
     final success = await ref

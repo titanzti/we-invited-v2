@@ -104,11 +104,19 @@ class PostRepository {
   Future<String?> uploadEventImage(File file) async {
     try {
       final fileName = file.path.split('/').last;
+      final lowerFileName = fileName.toLowerCase();
+      final contentType = lowerFileName.endsWith('.jpg') || lowerFileName.endsWith('.jpeg')
+          ? MediaType('image', 'jpeg')
+          : lowerFileName.endsWith('.webp')
+              ? MediaType('image', 'webp')
+              : lowerFileName.endsWith('.png')
+                  ? MediaType('image', 'png')
+                  : null;
       final formData = FormData.fromMap({
         'image': await MultipartFile.fromFile(
           file.path,
           filename: fileName,
-          contentType: MediaType('image', 'png'),
+          contentType: contentType,
         ),
       });
       final response = await ApiClient.instance.post('/events/upload-image', data: formData);

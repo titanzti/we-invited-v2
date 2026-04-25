@@ -20,10 +20,10 @@ class RSVPStatusCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: isDark ? AppTheme.darkSurface : Colors.white,
+        color: isDark ? AppTheme.darkSurface : AppTheme.surfaceWhite,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isDark ? AppTheme.darkBorder : Colors.grey.shade200,
+          color: isDark ? AppTheme.darkBorder : AppTheme.grey200,
         ),
         boxShadow: [
           BoxShadow(
@@ -56,7 +56,7 @@ class RSVPStatusCard extends StatelessWidget {
                   icon: Icons.check_circle,
                   label: 'Going',
                   count: stats.going,
-                  color: Colors.green,
+                  color: AppTheme.semanticGreen,
                 ),
               ),
               Expanded(
@@ -64,7 +64,7 @@ class RSVPStatusCard extends StatelessWidget {
                   icon: Icons.help_outline,
                   label: 'Maybe',
                   count: stats.maybe,
-                  color: Colors.orange,
+                  color: AppTheme.semanticOrange,
                 ),
               ),
               Expanded(
@@ -72,7 +72,7 @@ class RSVPStatusCard extends StatelessWidget {
                   icon: Icons.cancel,
                   label: 'Not Going',
                   count: stats.notGoing,
-                  color: Colors.red,
+                  color: AppTheme.semanticRed,
                 ),
               ),
             ],
@@ -117,7 +117,7 @@ class RSVPStatusCard extends StatelessWidget {
             Text(
               '+${stats.totalGuests} additional guests',
               style: TextStyle(
-                color: isDark ? AppTheme.darkTextPrimary : Colors.grey.shade600,
+                color: isDark ? AppTheme.darkTextPrimary : AppTheme.grey600,
                 fontSize: 12,
                 fontWeight: FontWeight.w500,
               ),
@@ -178,7 +178,7 @@ class _StatItem extends StatelessWidget {
         Text(
           label,
           style: TextStyle(
-            color: isDark ? AppTheme.darkTextSecondary : Colors.grey.shade600,
+            color: isDark ? AppTheme.darkTextSecondary : AppTheme.grey600,
             fontSize: 11,
           ),
         ),

@@ -190,19 +190,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
         child: CustomScrollView(
           physics: const BouncingScrollPhysics(),
           slivers: [
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Create', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppTheme.textMetadata)),
-                    const SizedBox(height: 4),
-                    Text('New Event', style: Theme.of(context).textTheme.displayMedium?.copyWith(fontSize: 36)),
-                  ],
-                ).animate().fade(duration: 500.ms).slideX(begin: -0.05),
-              ),
-            ),
+            SliverToBoxAdapter(child: _buildHeader()),
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.all(24),
@@ -212,198 +200,23 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const SizedBox(height: 8),
-
-                      // Category
-                      Text('Category', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontSize: 16)),
-                      const SizedBox(height: 12),
-                      SizedBox(
-                        height: 44,
-                        child: ListView.separated(
-                          scrollDirection: Axis.horizontal,
-                          itemCount: _categories.length,
-                          separatorBuilder: (_, __) => const SizedBox(width: 8),
-                          itemBuilder: (context, index) {
-                            final cat = _categories[index];
-                            final isSelected = cat.name == _selectedCategory;
-                            return GestureDetector(
-                              onTap: () {
-                                HapticFeedback.selectionClick();
-                                setState(() => _selectedCategory = cat.name);
-                              },
-                              child: AnimatedContainer(
-                                duration: const Duration(milliseconds: 200),
-                                padding: const EdgeInsets.symmetric(horizontal: 16),
-                                decoration: BoxDecoration(
-                                  color: isSelected ? AppTheme.primaryBlue : (isDark ? AppTheme.darkSurface : Colors.white),
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: isSelected ? null : Border.all(color: isDark ? AppTheme.darkBorder : AppTheme.borderLight),
-                                ),
-                                child: Row(
-                                  children: [
-                                    Icon(cat.icon, size: 16, color: isSelected ? Colors.white : AppTheme.textMetadata),
-                                    const SizedBox(width: 6),
-                                    Text(cat.name, style: TextStyle(color: isSelected ? Colors.white : (isDark ? AppTheme.darkTextPrimary : AppTheme.textBody), fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500, fontSize: 13)),
-                                  ],
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-
+                      _buildCategorySelector(isDark),
                       const SizedBox(height: 28),
-                      _buildSectionCard(isDark: isDark, child: TextFormField(controller: _nameController, decoration: const InputDecoration(labelText: 'Event Name', prefixIcon: Icon(Icons.event, size: 20), border: InputBorder.none, enabledBorder: InputBorder.none, focusedBorder: InputBorder.none), validator: (v) => v == null || v.isEmpty ? 'Event name is required' : null, enabled: !isLoading)).animate().fade(delay: 300.ms).slideY(begin: 0.05),
+                      _buildNameField(isDark, isLoading),
                       const SizedBox(height: 16),
-                      _buildSectionCard(isDark: isDark, child: TextFormField(controller: _placeController, decoration: const InputDecoration(labelText: 'Location', prefixIcon: Icon(Icons.location_on_outlined, size: 20), border: InputBorder.none, enabledBorder: InputBorder.none, focusedBorder: InputBorder.none), validator: (v) => v == null || v.isEmpty ? 'Location is required' : null, enabled: !isLoading)).animate().fade(delay: 400.ms).slideY(begin: 0.05),
-
+                      _buildLocationField(isDark, isLoading),
                       const SizedBox(height: 16),
-
-                      // Map pin
-                      GestureDetector(
-                        onTap: isLoading ? null : _pickLocation,
-                        child: _buildSectionCard(
-                          isDark: isDark,
-                          child: SizedBox(
-                            height: 140,
-                            child: _selectedLocation != null
-                                ? ClipRRect(
-                                    borderRadius: BorderRadius.circular(8),
-                                    child: Stack(
-                                      children: [
-                                        FlutterMap(
-                                          options: MapOptions(
-                                            initialCenter: _selectedLocation!,
-                                            initialZoom: 15,
-                                            interactionOptions: const InteractionOptions(flags: InteractiveFlag.none),
-                                          ),
-                                          children: [
-                                            TileLayer(urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png', userAgentPackageName: 'com.weinvited.app'),
-                                            MarkerLayer(markers: [
-                                              Marker(
-                                                point: _selectedLocation!,
-                                                width: 40,
-                                                height: 40,
-                                                child: const Icon(Icons.location_pin, color: Colors.red, size: 40),
-                                              ),
-                                            ]),
-                                          ],
-                                        ),
-                                        Positioned(
-                                          top: 8,
-                                          right: 8,
-                                          child: Container(
-                                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                            decoration: BoxDecoration(color: AppTheme.primaryBlue, borderRadius: BorderRadius.circular(8)),
-                                            child: const Text('Change', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600)),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  )
-                                : Center(
-                                    child: Column(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        Icon(Icons.add_location_alt, size: 32, color: AppTheme.primaryBlue),
-                                        const SizedBox(height: 8),
-                                        Text('Pin on Map', style: TextStyle(color: AppTheme.primaryBlue, fontWeight: FontWeight.w600, fontSize: 14)),
-                                        const SizedBox(height: 4),
-                                        Text('Tap to place your event on the map', style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
-                                      ],
-                                    ),
-                                  ),
-                          ),
-                        ),
-                      ).animate().fade(delay: 450.ms).slideY(begin: 0.05),
-
+                      _buildMapPicker(isDark, isLoading),
                       const SizedBox(height: 16),
-
-                      // Date & Time
-                      Row(children: [
-                        Expanded(child: _buildDateTile(isDark: isDark, label: 'Starts', value: _formatDateDisplay(_startDate, _startTime), onTap: isLoading ? null : () => _pickDate(isStart: true))),
-                        const SizedBox(width: 12),
-                        Expanded(child: _buildDateTile(isDark: isDark, label: 'Ends', value: _formatDateDisplay(_endDate, _endTime), onTap: isLoading ? null : () => _pickDate(isStart: false))),
-                      ]).animate().fade(delay: 500.ms).slideY(begin: 0.05),
-
+                      _buildDateTimePickers(isDark, isLoading),
                       const SizedBox(height: 16),
-                      _buildSectionCard(isDark: isDark, child: TextFormField(controller: _capacityController, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Max Capacity (optional)', prefixIcon: Icon(Icons.people_outline, size: 20), border: InputBorder.none, enabledBorder: InputBorder.none, focusedBorder: InputBorder.none), enabled: !isLoading)).animate().fade(delay: 600.ms).slideY(begin: 0.05),
-
+                      _buildCapacityField(isDark, isLoading),
                       const SizedBox(height: 16),
-                      _buildSectionCard(isDark: isDark, child: TextFormField(controller: _descController, maxLines: 4, decoration: const InputDecoration(labelText: 'Description (optional)', prefixIcon: Icon(Icons.notes, size: 20), border: InputBorder.none, enabledBorder: InputBorder.none, focusedBorder: InputBorder.none), enabled: !isLoading)).animate().fade(delay: 700.ms).slideY(begin: 0.05),
-
+                      _buildDescriptionField(isDark, isLoading),
                       const SizedBox(height: 16),
-
-                      // Event image
-                      GestureDetector(
-                        onTap: isLoading ? null : () async {
-                          HapticFeedback.selectionClick();
-                          final picked = await ImagePicker().pickImage(source: ImageSource.gallery, maxWidth: 1200, imageQuality: 85);
-                          if (picked != null) setState(() => _pickedImage = File(picked.path));
-                        },
-                        child: _buildSectionCard(
-                          isDark: isDark,
-                          child: SizedBox(
-                            height: 120,
-                            child: _pickedImage != null
-                                ? ClipRRect(
-                                    borderRadius: BorderRadius.circular(8),
-                                    child: Stack(
-                                      fit: StackFit.expand,
-                                      children: [
-                                        Image.file(_pickedImage!, fit: BoxFit.cover),
-                                        Positioned(
-                                          top: 8, right: 8,
-                                          child: GestureDetector(
-                                            onTap: () => setState(() => _pickedImage = null),
-                                            child: Container(
-                                              padding: const EdgeInsets.all(4),
-                                              decoration: const BoxDecoration(color: Colors.black54, shape: BoxShape.circle),
-                                              child: const Icon(Icons.close, color: Colors.white, size: 16),
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  )
-                                : Center(
-                                    child: Column(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        Icon(Icons.add_photo_alternate_outlined, size: 32, color: AppTheme.primaryBlue),
-                                        const SizedBox(height: 8),
-                                        Text('Add Cover Photo', style: TextStyle(color: AppTheme.primaryBlue, fontWeight: FontWeight.w600, fontSize: 14)),
-                                        const SizedBox(height: 4),
-                                        Text('Optional · Tap to upload', style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
-                                      ],
-                                    ),
-                                  ),
-                          ),
-                        ),
-                      ).animate().fade(delay: 720.ms).slideY(begin: 0.05),
-
-                      // Approval toggle
-                      _buildSectionCard(
-                        isDark: isDark,
-                        child: SwitchListTile.adaptive(
-                          value: _requiresApproval,
-                          onChanged: isLoading ? null : (v) {
-                            HapticFeedback.selectionClick();
-                            setState(() => _requiresApproval = v);
-                          },
-                          activeTrackColor: AppTheme.primaryBlue,
-                          title: const Text('Require Approval', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
-                          subtitle: Text(
-                            _requiresApproval ? 'You approve each request' : 'Anyone can join instantly',
-                            style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
-                          ),
-                          secondary: Icon(
-                            _requiresApproval ? Icons.verified_user : Icons.public,
-                            color: AppTheme.primaryBlue,
-                          ),
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                        ),
-                      ).animate().fade(delay: 750.ms).slideY(begin: 0.05),
-
+                      _buildImagePicker(isDark, isLoading),
+                      const SizedBox(height: 16),
+                      _buildApprovalToggle(isDark, isLoading),
                       const SizedBox(height: 32),
                       AnimatedPrimaryButton(text: 'Create Event', onPressed: _submitEvent, isLoading: isLoading).animate().fade(delay: 800.ms).slideY(begin: 0.1),
                       const SizedBox(height: 100),
@@ -418,10 +231,256 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
     );
   }
 
+  Widget _buildHeader() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Create', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppTheme.textMetadata)),
+          const SizedBox(height: 4),
+          Text('New Event', style: Theme.of(context).textTheme.displayMedium?.copyWith(fontSize: 36)),
+        ],
+      ).animate().fade(duration: 500.ms).slideX(begin: -0.05),
+    );
+  }
+
+  Widget _buildCategorySelector(bool isDark) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Category', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontSize: 16)),
+        const SizedBox(height: 12),
+        SizedBox(
+          height: 44,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            itemCount: _categories.length,
+            separatorBuilder: (_, __) => const SizedBox(width: 8),
+            itemBuilder: (context, index) {
+              final cat = _categories[index];
+              final isSelected = cat.name == _selectedCategory;
+              return GestureDetector(
+                onTap: () {
+                  HapticFeedback.selectionClick();
+                  setState(() => _selectedCategory = cat.name);
+                },
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  decoration: BoxDecoration(
+                    color: isSelected ? AppTheme.primaryBlue : (isDark ? AppTheme.darkSurface : AppTheme.surfaceWhite),
+                    borderRadius: BorderRadius.circular(12),
+                    border: isSelected ? null : Border.all(color: isDark ? AppTheme.darkBorder : AppTheme.borderLight),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(cat.icon, size: 16, color: isSelected ? AppTheme.surfaceWhite : AppTheme.textMetadata),
+                      const SizedBox(width: 6),
+                      Text(cat.name, style: TextStyle(color: isSelected ? AppTheme.surfaceWhite : (isDark ? AppTheme.darkTextPrimary : AppTheme.textBody), fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500, fontSize: 13)),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildNameField(bool isDark, bool isLoading) {
+    return _buildSectionCard(
+      isDark: isDark,
+      child: TextFormField(
+        controller: _nameController,
+        decoration: const InputDecoration(labelText: 'Event Name', prefixIcon: Icon(Icons.event, size: 20), border: InputBorder.none, enabledBorder: InputBorder.none, focusedBorder: InputBorder.none),
+        validator: (v) => v == null || v.isEmpty ? 'Event name is required' : null,
+        enabled: !isLoading,
+      ),
+    ).animate().fade(delay: 300.ms).slideY(begin: 0.05);
+  }
+
+  Widget _buildLocationField(bool isDark, bool isLoading) {
+    return _buildSectionCard(
+      isDark: isDark,
+      child: TextFormField(
+        controller: _placeController,
+        decoration: const InputDecoration(labelText: 'Location', prefixIcon: Icon(Icons.location_on_outlined, size: 20), border: InputBorder.none, enabledBorder: InputBorder.none, focusedBorder: InputBorder.none),
+        validator: (v) => v == null || v.isEmpty ? 'Location is required' : null,
+        enabled: !isLoading,
+      ),
+    ).animate().fade(delay: 400.ms).slideY(begin: 0.05);
+  }
+
+  Widget _buildMapPicker(bool isDark, bool isLoading) {
+    return GestureDetector(
+      onTap: isLoading ? null : _pickLocation,
+      child: _buildSectionCard(
+        isDark: isDark,
+        child: SizedBox(
+          height: 140,
+          child: _selectedLocation != null
+              ? ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Stack(
+                    children: [
+                      FlutterMap(
+                        options: MapOptions(
+                          initialCenter: _selectedLocation!,
+                          initialZoom: 15,
+                          interactionOptions: const InteractionOptions(flags: InteractiveFlag.none),
+                        ),
+                        children: [
+                          TileLayer(urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png', userAgentPackageName: 'com.weinvited.app'),
+                          MarkerLayer(markers: [
+                            Marker(
+                              point: _selectedLocation!,
+                              width: 40,
+                              height: 40,
+                              child: const Icon(Icons.location_pin, color: AppTheme.semanticRed, size: 40),
+                            ),
+                          ]),
+                        ],
+                      ),
+                      Positioned(
+                        top: 8,
+                        right: 8,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(color: AppTheme.primaryBlue, borderRadius: BorderRadius.circular(8)),
+                          child: const Text('Change', style: TextStyle(color: AppTheme.surfaceWhite, fontSize: 11, fontWeight: FontWeight.w600)),
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              : Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.add_location_alt, size: 32, color: AppTheme.primaryBlue),
+                      const SizedBox(height: 8),
+                      Text('Pin on Map', style: AppTheme.actionLabel),
+                      const SizedBox(height: 4),
+                      Text('Tap to place your event on the map', style: AppTheme.caption(isDark)),
+                    ],
+                  ),
+                ),
+        ),
+      ),
+    ).animate().fade(delay: 450.ms).slideY(begin: 0.05);
+  }
+
+  Widget _buildDateTimePickers(bool isDark, bool isLoading) {
+    return Row(children: [
+      Expanded(child: _buildDateTile(isDark: isDark, label: 'Starts', value: _formatDateDisplay(_startDate, _startTime), onTap: isLoading ? null : () => _pickDate(isStart: true))),
+      const SizedBox(width: 12),
+      Expanded(child: _buildDateTile(isDark: isDark, label: 'Ends', value: _formatDateDisplay(_endDate, _endTime), onTap: isLoading ? null : () => _pickDate(isStart: false))),
+    ]).animate().fade(delay: 500.ms).slideY(begin: 0.05);
+  }
+
+  Widget _buildCapacityField(bool isDark, bool isLoading) {
+    return _buildSectionCard(
+      isDark: isDark,
+      child: TextFormField(
+        controller: _capacityController,
+        keyboardType: TextInputType.number,
+        decoration: const InputDecoration(labelText: 'Max Capacity (optional)', prefixIcon: Icon(Icons.people_outline, size: 20), border: InputBorder.none, enabledBorder: InputBorder.none, focusedBorder: InputBorder.none),
+        enabled: !isLoading,
+      ),
+    ).animate().fade(delay: 600.ms).slideY(begin: 0.05);
+  }
+
+  Widget _buildDescriptionField(bool isDark, bool isLoading) {
+    return _buildSectionCard(
+      isDark: isDark,
+      child: TextFormField(
+        controller: _descController,
+        maxLines: 4,
+        decoration: const InputDecoration(labelText: 'Description (optional)', prefixIcon: Icon(Icons.notes, size: 20), border: InputBorder.none, enabledBorder: InputBorder.none, focusedBorder: InputBorder.none),
+        enabled: !isLoading,
+      ),
+    ).animate().fade(delay: 700.ms).slideY(begin: 0.05);
+  }
+
+  Widget _buildImagePicker(bool isDark, bool isLoading) {
+    return GestureDetector(
+      onTap: isLoading ? null : () async {
+        HapticFeedback.selectionClick();
+        final picked = await ImagePicker().pickImage(source: ImageSource.gallery, maxWidth: 1200, imageQuality: 85);
+        if (picked != null) setState(() => _pickedImage = File(picked.path));
+      },
+      child: _buildSectionCard(
+        isDark: isDark,
+        child: SizedBox(
+          height: 120,
+          child: _pickedImage != null
+              ? ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      Image.file(_pickedImage!, fit: BoxFit.cover),
+                      Positioned(
+                        top: 8, right: 8,
+                        child: GestureDetector(
+                          onTap: () => setState(() => _pickedImage = null),
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: const BoxDecoration(color: AppTheme.overlayDark, shape: BoxShape.circle),
+                            child: const Icon(Icons.close, color: AppTheme.surfaceWhite, size: 16),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              : Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.add_photo_alternate_outlined, size: 32, color: AppTheme.primaryBlue),
+                      const SizedBox(height: 8),
+                      Text('Add Cover Photo', style: AppTheme.actionLabel),
+                      const SizedBox(height: 4),
+                      Text('Optional · Tap to upload', style: AppTheme.caption(isDark)),
+                    ],
+                  ),
+                ),
+        ),
+      ),
+    ).animate().fade(delay: 720.ms).slideY(begin: 0.05);
+  }
+
+  Widget _buildApprovalToggle(bool isDark, bool isLoading) {
+    return _buildSectionCard(
+      isDark: isDark,
+      child: SwitchListTile.adaptive(
+        value: _requiresApproval,
+        onChanged: isLoading ? null : (v) {
+          HapticFeedback.selectionClick();
+          setState(() => _requiresApproval = v);
+        },
+        activeTrackColor: AppTheme.primaryBlue,
+        title: const Text('Require Approval', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
+        subtitle: Text(
+          _requiresApproval ? 'You approve each request' : 'Anyone can join instantly',
+          style: AppTheme.caption(isDark),
+        ),
+        secondary: Icon(
+          _requiresApproval ? Icons.verified_user : Icons.public,
+          color: AppTheme.primaryBlue,
+        ),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      ),
+    ).animate().fade(delay: 750.ms).slideY(begin: 0.05);
+  }
+
   Widget _buildSectionCard({required bool isDark, required Widget child}) {
     return Container(
       decoration: BoxDecoration(
-        color: isDark ? AppTheme.darkSurface : Colors.white,
+        color: isDark ? AppTheme.darkSurface : AppTheme.surfaceWhite,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: isDark ? AppTheme.darkBorder : AppTheme.borderLight),
         boxShadow: isDark ? null : PremiumShadows.softCard,
@@ -436,12 +495,12 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(color: isDark ? AppTheme.darkSurface : Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: isDark ? AppTheme.darkBorder : AppTheme.borderLight), boxShadow: isDark ? null : PremiumShadows.softCard),
+        decoration: BoxDecoration(color: isDark ? AppTheme.darkSurface : AppTheme.surfaceWhite, borderRadius: BorderRadius.circular(12), border: Border.all(color: isDark ? AppTheme.darkBorder : AppTheme.borderLight), boxShadow: isDark ? null : PremiumShadows.softCard),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Row(children: [
             Icon(Icons.calendar_today, size: 14, color: AppTheme.primaryBlue),
             const SizedBox(width: 6),
-            Text(label, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.primaryBlue, letterSpacing: 0.5)),
+            Text(label, style: AppTheme.labelPrimary),
           ]),
           const SizedBox(height: 8),
           Text(value, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: value == 'Select' ? (isDark ? AppTheme.darkTextSecondary : AppTheme.textMetadata) : (isDark ? AppTheme.darkTextPrimary : AppTheme.textBody))),
@@ -474,7 +533,7 @@ class _LocationPickerState extends State<_LocationPicker> {
     return Container(
       height: MediaQuery.of(context).size.height * 0.75,
       decoration: BoxDecoration(
-        color: widget.isDark ? AppTheme.darkSurface : Colors.white,
+        color: widget.isDark ? AppTheme.darkSurface : AppTheme.surfaceWhite,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       child: Column(
@@ -483,11 +542,11 @@ class _LocationPickerState extends State<_LocationPicker> {
             padding: const EdgeInsets.fromLTRB(24, 12, 24, 8),
             child: Column(
               children: [
-                Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2))),
+                Container(width: 40, height: 4, decoration: BoxDecoration(color: AppTheme.grey300, borderRadius: BorderRadius.circular(2))),
                 const SizedBox(height: 16),
                 Text('Pin Your Event', style: Theme.of(context).textTheme.titleLarge),
                 const SizedBox(height: 4),
-                Text('Tap on the map to set location', style: TextStyle(color: Colors.grey.shade500, fontSize: 13)),
+                Text('Tap on the map to set location', style: TextStyle(color: AppTheme.grey500, fontSize: 13)),
               ],
             ),
           ),
@@ -510,7 +569,7 @@ class _LocationPickerState extends State<_LocationPicker> {
                       point: _pin,
                       width: 50,
                       height: 50,
-                      child: const Icon(Icons.location_pin, color: Colors.red, size: 50),
+                      child: const Icon(Icons.location_pin, color: AppTheme.semanticRed, size: 50),
                     ),
                   ]),
                 ],

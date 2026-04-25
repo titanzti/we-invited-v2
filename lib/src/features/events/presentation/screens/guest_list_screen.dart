@@ -65,20 +65,20 @@ class _GuestListScreenState extends ConsumerState<GuestListScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark ? AppTheme.darkBackground : Colors.white,
+      backgroundColor: isDark ? AppTheme.darkBackground : AppTheme.surfaceWhite,
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
           SliverAppBar(
             pinned: true,
-            backgroundColor: isDark ? AppTheme.darkBackground : Colors.white,
+            backgroundColor: isDark ? AppTheme.darkBackground : AppTheme.surfaceWhite,
             leading: Padding(
               padding: const EdgeInsets.all(8.0),
               child: GestureDetector(
                 onTap: () => context.pop(),
                 child: Container(
                   decoration: BoxDecoration(
-                    color: isDark ? AppTheme.darkSurface : Colors.grey.shade100,
+                    color: isDark ? AppTheme.darkSurface : AppTheme.grey100,
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
@@ -108,9 +108,9 @@ class _GuestListScreenState extends ConsumerState<GuestListScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.error_outline, size: 48, color: Colors.grey.shade400),
+                    Icon(Icons.error_outline, size: 48, color: AppTheme.grey400),
                     const SizedBox(height: 12),
-                    Text(_error!, style: TextStyle(color: Colors.grey.shade600)),
+                    Text(_error!, style: TextStyle(color: AppTheme.grey600)),
                     const SizedBox(height: 12),
                     OutlinedButton(onPressed: _loadData, child: const Text('Retry')),
                   ],
@@ -124,24 +124,24 @@ class _GuestListScreenState extends ConsumerState<GuestListScreen> {
                 padding: const EdgeInsets.fromLTRB(24, 8, 24, 16),
                 child: Row(
                   children: [
-                    _buildStatBox('Going', _stats?.going ?? 0, Colors.green),
+                    _buildStatBox('Going', _stats?.going ?? 0, AppTheme.semanticGreen),
                     const SizedBox(width: 12),
-                    _buildStatBox('Maybe', _stats?.maybe ?? 0, Colors.orange),
+                    _buildStatBox('Maybe', _stats?.maybe ?? 0, AppTheme.semanticOrange),
                     const SizedBox(width: 12),
-                    _buildStatBox('Not Going', _stats?.notGoing ?? 0, Colors.red),
+                    _buildStatBox('Not Going', _stats?.notGoing ?? 0, AppTheme.semanticRed),
                   ],
                 ).animate().fade().slideY(begin: 0.1),
               ),
             ),
             // Going
-            _buildGroupHeader('Going', Colors.green, _rsvpsForStatus(RSVPStatus.going).length),
-            _buildGuestList(_rsvpsForStatus(RSVPStatus.going), Colors.green, isDark),
+            _buildGroupHeader('Going', AppTheme.semanticGreen, _rsvpsForStatus(RSVPStatus.going).length),
+            _buildGuestList(_rsvpsForStatus(RSVPStatus.going), AppTheme.semanticGreen, isDark),
             // Maybe
-            _buildGroupHeader('Maybe', Colors.orange, _rsvpsForStatus(RSVPStatus.maybe).length),
-            _buildGuestList(_rsvpsForStatus(RSVPStatus.maybe), Colors.orange, isDark),
+            _buildGroupHeader('Maybe', AppTheme.semanticOrange, _rsvpsForStatus(RSVPStatus.maybe).length),
+            _buildGuestList(_rsvpsForStatus(RSVPStatus.maybe), AppTheme.semanticOrange, isDark),
             // Not Going
-            _buildGroupHeader('Not Going', Colors.red, _rsvpsForStatus(RSVPStatus.notGoing).length),
-            _buildGuestList(_rsvpsForStatus(RSVPStatus.notGoing), Colors.red, isDark),
+            _buildGroupHeader('Not Going', AppTheme.semanticRed, _rsvpsForStatus(RSVPStatus.notGoing).length),
+            _buildGuestList(_rsvpsForStatus(RSVPStatus.notGoing), AppTheme.semanticRed, isDark),
             const SliverToBoxAdapter(child: SizedBox(height: 40)),
           ],
         ],
@@ -155,10 +155,10 @@ class _GuestListScreenState extends ConsumerState<GuestListScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 16),
         decoration: BoxDecoration(
-          color: isDark ? AppTheme.darkSurface : Colors.grey.shade50,
+          color: isDark ? AppTheme.darkSurface : AppTheme.grey50,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isDark ? AppTheme.darkBorder : Colors.grey.shade200,
+            color: isDark ? AppTheme.darkBorder : AppTheme.grey200,
           ),
         ),
         child: Column(
@@ -177,7 +177,7 @@ class _GuestListScreenState extends ConsumerState<GuestListScreen> {
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
-                color: isDark ? AppTheme.darkTextSecondary : Colors.grey.shade600,
+                color: isDark ? AppTheme.darkTextSecondary : AppTheme.grey600,
               ),
             ),
           ],
@@ -238,7 +238,7 @@ class _GuestListScreenState extends ConsumerState<GuestListScreen> {
             'No one yet',
             style: TextStyle(
               fontSize: 13,
-              color: isDark ? AppTheme.darkTextSecondary : Colors.grey.shade500,
+              color: isDark ? AppTheme.darkTextSecondary : AppTheme.grey500,
             ),
           ),
         ),
@@ -257,7 +257,7 @@ class _GuestListScreenState extends ConsumerState<GuestListScreen> {
             margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 6),
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: isDark ? AppTheme.darkSurface : Colors.grey.shade50,
+              color: isDark ? AppTheme.darkSurface : AppTheme.grey50,
               borderRadius: BorderRadius.circular(12),
             ),
             child: Row(
@@ -296,7 +296,7 @@ class _GuestListScreenState extends ConsumerState<GuestListScreen> {
                           user.email,
                           style: TextStyle(
                             fontSize: 12,
-                            color: isDark ? AppTheme.darkTextSecondary : Colors.grey.shade600,
+                            color: isDark ? AppTheme.darkTextSecondary : AppTheme.grey600,
                           ),
                         ),
                     ],

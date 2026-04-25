@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:http_parser/http_parser.dart';
-import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../utils/api_client.dart';
 import '../../../utils/api_response.dart';
@@ -95,7 +94,7 @@ class PostRepository {
         if (description != null && description.isNotEmpty) 'description': description,
         if (imageUrl != null && imageUrl.isNotEmpty) 'imageUrl': imageUrl,
         if (startDateTime != null) 'startdateTime': startDateTime.toIso8601String(),
-        if (endDateTime != null) 'entdateTime': endDateTime.toIso8601String(),
+        if (endDateTime != null) 'enddateTime': endDateTime.toIso8601String(),
         if (maxCapacity != null) 'numpeople': maxCapacity.toString(),
         'requiresApproval': requiresApproval,
         if (latitude != null) 'latitude': latitude,
@@ -161,7 +160,7 @@ class PostRepository {
         if (description != null && description.isNotEmpty) 'description': description,
         if (imageUrl != null && imageUrl.isNotEmpty) 'imageUrl': imageUrl,
         if (startDateTime != null) 'startdateTime': startDateTime.toIso8601String(),
-        if (endDateTime != null) 'entdateTime': endDateTime.toIso8601String(),
+        if (endDateTime != null) 'enddateTime': endDateTime.toIso8601String(),
         if (maxCapacity != null) 'numpeople': maxCapacity.toString(),
         'requiresApproval': requiresApproval,
         if (latitude != null) 'latitude': latitude,
@@ -186,9 +185,7 @@ class PostRepository {
 
   Future<JoinEventResponseDto> joinEvent(String eventId) async {
     try {
-      debugPrint('[joinEvent] POST /events/$eventId/join');
       final response = await ApiClient.instance.post('/events/$eventId/join');
-      debugPrint('[joinEvent] statusCode: ${response.statusCode}');
       final result = ApiResponse<JoinEventResponseDto>.fromJson(
         response.data,
         (data) => JoinEventResponseDto.fromJson(data),
@@ -197,7 +194,6 @@ class PostRepository {
     } on DioException catch (e) {
       final responseData = e.response?.data;
       final serverMsg = responseData is Map ? (responseData['error'] as String?) ?? '' : '';
-      debugPrint('[joinEvent] DioException ${e.response?.statusCode}: $serverMsg');
 
       if (e.response?.statusCode == 409 && serverMsg.contains('Already')) {
         return const JoinEventResponseDto(status: 'APPROVED', message: 'You already joined this event');
@@ -205,7 +201,6 @@ class PostRepository {
 
       throw AppException.fromDio(e);
     } catch (e) {
-      debugPrint('[joinEvent] ERROR: $e');
       throw UnknownException('Failed to join event: $e');
     }
   }

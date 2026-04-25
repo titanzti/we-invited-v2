@@ -66,7 +66,7 @@ class _AnimatedPrimaryButtonState extends State<AnimatedPrimaryButton> {
                   height: 20,
                   width: 20,
                   child: CircularProgressIndicator(
-                    color: Colors.white,
+                    color: AppTheme.surfaceWhite,
                     strokeWidth: 2,
                   ),
                 ).animate().fade()
@@ -117,7 +117,7 @@ class PremiumToast {
           ),
           child: Row(
             children: [
-              Icon(toastIcon, color: Colors.white, size: 28),
+              Icon(toastIcon, color: AppTheme.surfaceWhite, size: 28),
               const SizedBox(width: 16),
               Expanded(
                 child: Column(
@@ -127,7 +127,7 @@ class PremiumToast {
                     Text(
                       title,
                       style: const TextStyle(
-                        color: Colors.white,
+                        color: AppTheme.surfaceWhite,
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
                         letterSpacing: -0.3,

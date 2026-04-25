@@ -81,9 +81,9 @@ class _MyInvitesScreenState extends ConsumerState<MyInvitesScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.error_outline, size: 48, color: Colors.grey.shade400),
+            Icon(Icons.error_outline, size: 48, color: AppTheme.grey400),
             const SizedBox(height: 12),
-            Text(_error!, style: TextStyle(color: Colors.grey.shade600)),
+            Text(_error!, style: TextStyle(color: AppTheme.grey600)),
             const SizedBox(height: 12),
             OutlinedButton(onPressed: _loadInvites, child: const Text('Retry')),
           ],
@@ -96,16 +96,16 @@ class _MyInvitesScreenState extends ConsumerState<MyInvitesScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.mail_outline, size: 64, color: Colors.grey.shade300),
+            Icon(Icons.mail_outline, size: 64, color: AppTheme.grey300),
             const SizedBox(height: 16),
             Text(
               'No invites yet',
-              style: TextStyle(color: Colors.grey.shade500, fontSize: 16, fontWeight: FontWeight.w600),
+              style: TextStyle(color: AppTheme.grey500, fontSize: 16, fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 8),
             Text(
               'When someone invites you to an event,\nit will appear here',
-              style: TextStyle(color: Colors.grey.shade400, fontSize: 14),
+              style: TextStyle(color: AppTheme.grey400, fontSize: 14),
               textAlign: TextAlign.center,
             ),
           ],
@@ -131,7 +131,7 @@ class _MyInvitesScreenState extends ConsumerState<MyInvitesScreen> {
             margin: const EdgeInsets.only(bottom: 16),
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: isDark ? AppTheme.darkSurface : Colors.white,
+              color: isDark ? AppTheme.darkSurface : AppTheme.surfaceWhite,
               borderRadius: BorderRadius.circular(16),
               boxShadow: isDark ? null : PremiumShadows.softCard,
               border: isDark ? Border.all(color: AppTheme.darkBorder) : null,
@@ -164,7 +164,7 @@ class _MyInvitesScreenState extends ConsumerState<MyInvitesScreen> {
                           const SizedBox(height: 2),
                           Text(
                             'From $inviterName · $dateText',
-                            style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
+                            style: AppTheme.caption(isDark),
                           ),
                         ],
                       ),
@@ -181,7 +181,7 @@ class _MyInvitesScreenState extends ConsumerState<MyInvitesScreen> {
                           style: OutlinedButton.styleFrom(
                             padding: const EdgeInsets.symmetric(vertical: 10),
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                            side: BorderSide(color: Colors.grey.shade300),
+                            side: BorderSide(color: AppTheme.grey300),
                           ),
                           child: const Text('Decline', style: TextStyle(fontSize: 13)),
                         ),
@@ -206,14 +206,14 @@ class _MyInvitesScreenState extends ConsumerState<MyInvitesScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
                       color: invite.status == 'ACCEPTED'
-                          ? Colors.green.withValues(alpha: 0.1)
-                          : Colors.red.withValues(alpha: 0.1),
+                          ? AppTheme.semanticGreen.withValues(alpha: 0.1)
+                          : AppTheme.semanticRed.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
                       invite.status == 'ACCEPTED' ? 'Accepted' : 'Declined',
                       style: TextStyle(
-                        color: invite.status == 'ACCEPTED' ? Colors.green : Colors.red,
+                        color: invite.status == 'ACCEPTED' ? AppTheme.semanticGreen : AppTheme.semanticRed,
                         fontSize: 11,
                         fontWeight: FontWeight.bold,
                       ),

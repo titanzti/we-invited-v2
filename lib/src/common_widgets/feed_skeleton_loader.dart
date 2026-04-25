@@ -15,11 +15,11 @@ class FeedSkeletonLoader extends StatelessWidget {
       itemBuilder: (context, index) {
         return Shimmer.fromColors(
           baseColor: AppTheme.borderLight,
-          highlightColor: Colors.white,
+          highlightColor: AppTheme.surfaceWhite,
           child: Container(
             height: 280,
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: AppTheme.surfaceWhite,
               borderRadius: BorderRadius.circular(24),
             ),
             child: Column(
@@ -29,7 +29,7 @@ class FeedSkeletonLoader extends StatelessWidget {
                 Container(
                   height: 160,
                   decoration: const BoxDecoration(
-                    color: Colors.white,
+                    color: AppTheme.surfaceWhite,
                     borderRadius: BorderRadius.only(
                       topLeft: Radius.circular(24),
                       topRight: Radius.circular(24),
@@ -46,7 +46,7 @@ class FeedSkeletonLoader extends StatelessWidget {
                         height: 24,
                         width: MediaQuery.of(context).size.width * 0.6,
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: AppTheme.surfaceWhite,
                           borderRadius: BorderRadius.circular(4),
                         ),
                       ),
@@ -56,7 +56,7 @@ class FeedSkeletonLoader extends StatelessWidget {
                         height: 16,
                         width: MediaQuery.of(context).size.width * 0.4,
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: AppTheme.surfaceWhite,
                           borderRadius: BorderRadius.circular(4),
                         ),
                       ),

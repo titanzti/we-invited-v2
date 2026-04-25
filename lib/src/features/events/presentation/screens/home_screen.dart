@@ -173,7 +173,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                 child: AnimatedContainer(
                                   duration: const Duration(milliseconds: 200),
                                   decoration: BoxDecoration(
-                                    color: isSelected ? AppTheme.primaryBlue : Colors.white,
+                                    color: isSelected ? AppTheme.primaryBlue : AppTheme.surfaceWhite,
                                     shape: BoxShape.circle,
                                     border: Border.all(color: AppTheme.primaryBlue, width: 2.5),
                                     boxShadow: [
@@ -186,7 +186,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                   ),
                                   child: Icon(
                                     _categoryIcons[post.category] ?? Icons.event,
-                                    color: isSelected ? Colors.white : AppTheme.primaryBlue,
+                                    color: isSelected ? AppTheme.surfaceWhite : AppTheme.primaryBlue,
                                     size: isSelected ? 24 : 20,
                                   ),
                                 ),
@@ -199,16 +199,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             );
           },
           loading: () => Container(
-            color: isDark ? AppTheme.darkBackground : Colors.grey.shade200,
+            color: isDark ? AppTheme.darkBackground : AppTheme.grey200,
             child: const Center(child: CircularProgressIndicator()),
           ),
           error: (_, __) => Container(
-            color: isDark ? AppTheme.darkBackground : Colors.grey.shade200,
+            color: isDark ? AppTheme.darkBackground : AppTheme.grey200,
             child: Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.cloud_off, size: 48, color: Colors.grey.shade400),
+                  Icon(Icons.cloud_off, size: 48, color: AppTheme.grey400),
                   const SizedBox(height: 8),
                   TextButton(onPressed: _onRefresh, child: const Text('Retry')),
                 ],
@@ -302,7 +302,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.event_busy, size: 64, color: Colors.grey.shade300),
+                        Icon(Icons.event_busy, size: 64, color: AppTheme.grey300),
                         const SizedBox(height: 16),
                         Text(
                           _searchController.text.isNotEmpty
@@ -310,11 +310,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                               : _selectedCategory != 'All'
                                   ? 'No $_selectedCategory events right now'
                                   : 'No events happening right now',
-                          style: TextStyle(color: Colors.grey.shade500, fontSize: 16),
+                          style: TextStyle(color: AppTheme.grey500, fontSize: 16),
                         ),
                         const SizedBox(height: 8),
                         Text('Pull down to refresh',
-                            style: TextStyle(color: Colors.grey.shade400, fontSize: 13)),
+                            style: TextStyle(color: AppTheme.grey400, fontSize: 13)),
                       ],
                     ),
                   ),
@@ -348,10 +348,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.cloud_off, size: 48, color: Colors.grey.shade300),
+                    Icon(Icons.cloud_off, size: 48, color: AppTheme.grey300),
                     const SizedBox(height: 16),
                     Text('Failed to load events',
-                        style: TextStyle(color: Colors.grey.shade600)),
+                        style: TextStyle(color: AppTheme.grey600)),
                     const SizedBox(height: 8),
                     TextButton(onPressed: _onRefresh, child: const Text('Tap to retry')),
                   ],
@@ -398,7 +398,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 },
                 child: Container(
                   padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(color: isDark ? AppTheme.darkSurface : Colors.white, borderRadius: BorderRadius.circular(12), boxShadow: PremiumShadows.softCard),
+                  decoration: BoxDecoration(color: isDark ? AppTheme.darkSurface : AppTheme.surfaceWhite, borderRadius: BorderRadius.circular(12), boxShadow: PremiumShadows.softCard),
                   child: Icon(_isSearching ? Icons.close : Icons.search, color: AppTheme.primaryBlue, size: 22),
                 ),
               ),
@@ -418,7 +418,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         hintText: 'Search events...',
                         prefixIcon: const Icon(Icons.search, size: 20),
                         filled: true,
-                        fillColor: isDark ? AppTheme.darkSurface : Colors.white,
+                        fillColor: isDark ? AppTheme.darkSurface : AppTheme.surfaceWhite,
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
                         contentPadding: const EdgeInsets.symmetric(vertical: 10),
                       ),
@@ -451,7 +451,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             },
             child: Container(
               padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(color: isDark ? AppTheme.darkSurface : Colors.white, borderRadius: BorderRadius.circular(12), boxShadow: PremiumShadows.softCard),
+              decoration: BoxDecoration(color: isDark ? AppTheme.darkSurface : AppTheme.surfaceWhite, borderRadius: BorderRadius.circular(12), boxShadow: PremiumShadows.softCard),
               child: Icon(_isSearching ? Icons.close : Icons.search, color: AppTheme.primaryBlue),
             ),
           ),
@@ -471,7 +471,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 controller: _searchController,
                 autofocus: true,
                 onChanged: _onSearchChanged,
-                decoration: InputDecoration(hintText: 'Search events, places...', prefixIcon: const Icon(Icons.search, size: 20), filled: true, fillColor: isDark ? AppTheme.darkSurface : Colors.white, border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none)),
+                decoration: InputDecoration(hintText: 'Search events, places...', prefixIcon: const Icon(Icons.search, size: 20), filled: true, fillColor: isDark ? AppTheme.darkSurface : AppTheme.surfaceWhite, border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none)),
               ),
             )
           : const SizedBox.shrink(),
@@ -500,15 +500,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               duration: const Duration(milliseconds: 250),
               padding: const EdgeInsets.symmetric(horizontal: 16),
               decoration: BoxDecoration(
-                color: isSelected ? AppTheme.primaryBlue : (isDark ? AppTheme.darkSurface : Colors.white),
+                color: isSelected ? AppTheme.primaryBlue : (isDark ? AppTheme.darkSurface : AppTheme.surfaceWhite),
                 borderRadius: BorderRadius.circular(12),
                 border: isSelected ? null : Border.all(color: isDark ? AppTheme.darkBorder : AppTheme.borderLight),
                 boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.08), blurRadius: 4, offset: const Offset(0, 2))],
               ),
               child: Row(children: [
-                Icon(_categoryIcons[cat] ?? Icons.category, size: 16, color: isSelected ? Colors.white : AppTheme.textMetadata),
+                Icon(_categoryIcons[cat] ?? Icons.category, size: 16, color: isSelected ? AppTheme.surfaceWhite : AppTheme.textMetadata),
                 const SizedBox(width: 6),
-                Text(cat, style: TextStyle(color: isSelected ? Colors.white : (isDark ? AppTheme.darkTextPrimary : AppTheme.textBody), fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500, fontSize: 13)),
+                Text(cat, style: TextStyle(color: isSelected ? AppTheme.surfaceWhite : (isDark ? AppTheme.darkTextPrimary : AppTheme.textBody), fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500, fontSize: 13)),
               ]),
             ),
           );
@@ -528,7 +528,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       },
       child: Container(
         padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(color: isDark ? AppTheme.darkSurface : Colors.white, borderRadius: BorderRadius.circular(12), boxShadow: PremiumShadows.softCard),
+        decoration: BoxDecoration(color: isDark ? AppTheme.darkSurface : AppTheme.surfaceWhite, borderRadius: BorderRadius.circular(12), boxShadow: PremiumShadows.softCard),
         child: Icon(_isMapView ? Icons.view_list : Icons.map, color: AppTheme.primaryBlue, size: 22),
       ),
     );
@@ -549,7 +549,7 @@ class _MapEventCard extends StatelessWidget {
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          color: isDark ? AppTheme.darkSurface : Colors.white,
+          color: isDark ? AppTheme.darkSurface : AppTheme.surfaceWhite,
           borderRadius: BorderRadius.circular(16),
           boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.15), blurRadius: 20, offset: const Offset(0, 8))],
         ),
@@ -580,19 +580,19 @@ class _MapEventCard extends StatelessWidget {
                         ),
                         if (post.requiresApproval) ...[
                           const SizedBox(width: 6),
-                          Icon(Icons.verified_user, size: 14, color: Colors.orange.shade700),
+                          Icon(Icons.verified_user, size: 14, color: AppTheme.semanticOrangeDark),
                         ],
                         const Spacer(),
-                        GestureDetector(onTap: onClose, child: Icon(Icons.close, size: 18, color: Colors.grey.shade400)),
+                        GestureDetector(onTap: onClose, child: Icon(Icons.close, size: 18, color: AppTheme.grey400)),
                       ],
                     ),
                     const SizedBox(height: 6),
                     Text(post.name, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontSize: 15), maxLines: 1, overflow: TextOverflow.ellipsis),
                     const SizedBox(height: 4),
                     Row(children: [
-                      Icon(Icons.location_on_outlined, size: 13, color: Colors.grey.shade500),
+                      Icon(Icons.location_on_outlined, size: 13, color: AppTheme.grey500),
                       const SizedBox(width: 3),
-                      Expanded(child: Text(post.place, style: TextStyle(fontSize: 12, color: Colors.grey.shade600), maxLines: 1, overflow: TextOverflow.ellipsis)),
+                      Expanded(child: Text(post.place, style: TextStyle(fontSize: 12, color: AppTheme.grey600), maxLines: 1, overflow: TextOverflow.ellipsis)),
                     ]),
                   ],
                 ),

@@ -49,9 +49,9 @@ class _MyRSVPsScreenState extends ConsumerState<MyRSVPsScreen> {
 
   Color _statusColor(RSVPStatus status) {
     return switch (status) {
-      RSVPStatus.going => Colors.green,
-      RSVPStatus.maybe => Colors.orange,
-      RSVPStatus.notGoing => Colors.red,
+      RSVPStatus.going => AppTheme.semanticGreen,
+      RSVPStatus.maybe => AppTheme.semanticOrange,
+      RSVPStatus.notGoing => AppTheme.semanticRed,
     };
   }
 
@@ -76,9 +76,9 @@ class _MyRSVPsScreenState extends ConsumerState<MyRSVPsScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.error_outline, size: 48, color: Colors.grey.shade400),
+            Icon(Icons.error_outline, size: 48, color: AppTheme.grey400),
             const SizedBox(height: 12),
-            Text(_error!, style: TextStyle(color: Colors.grey.shade600)),
+            Text(_error!, style: TextStyle(color: AppTheme.grey600)),
             const SizedBox(height: 12),
             OutlinedButton(onPressed: _loadData, child: const Text('Retry')),
           ],
@@ -91,12 +91,12 @@ class _MyRSVPsScreenState extends ConsumerState<MyRSVPsScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.event_available, size: 64, color: Colors.grey.shade300),
+            Icon(Icons.event_available, size: 64, color: AppTheme.grey300),
             const SizedBox(height: 16),
             Text(
               'No RSVPs yet',
               style: TextStyle(
-                color: Colors.grey.shade500,
+                color: AppTheme.grey500,
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
               ),
@@ -104,7 +104,7 @@ class _MyRSVPsScreenState extends ConsumerState<MyRSVPsScreen> {
             const SizedBox(height: 8),
             Text(
               'Events you RSVP to will appear here',
-              style: TextStyle(color: Colors.grey.shade400, fontSize: 14),
+              style: TextStyle(color: AppTheme.grey400, fontSize: 14),
             ),
           ],
         ),
@@ -130,7 +130,7 @@ class _MyRSVPsScreenState extends ConsumerState<MyRSVPsScreen> {
             margin: const EdgeInsets.only(bottom: 16),
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: isDark ? AppTheme.darkSurface : Colors.white,
+              color: isDark ? AppTheme.darkSurface : AppTheme.surfaceWhite,
               borderRadius: BorderRadius.circular(16),
               boxShadow: isDark ? null : PremiumShadows.softCard,
               border: isDark ? Border.all(color: AppTheme.darkBorder) : null,
@@ -158,7 +158,7 @@ class _MyRSVPsScreenState extends ConsumerState<MyRSVPsScreen> {
                       const SizedBox(height: 4),
                       Text(
                         dateText,
-                        style: TextStyle(fontSize: 13, color: Colors.grey.shade500),
+                        style: TextStyle(fontSize: 13, color: AppTheme.grey500),
                       ),
                     ],
                   ),
@@ -187,7 +187,7 @@ class _MyRSVPsScreenState extends ConsumerState<MyRSVPsScreen> {
                         '+${rsvp.guestCount} guest${rsvp.guestCount != 1 ? 's' : ''}',
                         style: TextStyle(
                           fontSize: 11,
-                          color: isDark ? AppTheme.darkTextSecondary : Colors.grey.shade600,
+                          color: isDark ? AppTheme.darkTextSecondary : AppTheme.grey600,
                         ),
                       ),
                     ],
@@ -212,7 +212,7 @@ class _MyRSVPsScreenState extends ConsumerState<MyRSVPsScreen> {
       backgroundColor: Colors.transparent,
       builder: (sheetContext) => Container(
         decoration: BoxDecoration(
-          color: isDark ? AppTheme.darkSurface : Colors.white,
+          color: isDark ? AppTheme.darkSurface : AppTheme.surfaceWhite,
           borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
         ),
         padding: EdgeInsets.fromLTRB(
@@ -228,7 +228,7 @@ class _MyRSVPsScreenState extends ConsumerState<MyRSVPsScreen> {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: Colors.grey.shade300,
+                color: AppTheme.grey300,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -269,7 +269,7 @@ class _MyRSVPsScreenState extends ConsumerState<MyRSVPsScreen> {
               Text(
                 '+${rsvp.guestCount} guest${rsvp.guestCount != 1 ? 's' : ''}',
                 style: TextStyle(
-                  color: isDark ? AppTheme.darkTextSecondary : Colors.grey.shade600,
+                  color: isDark ? AppTheme.darkTextSecondary : AppTheme.grey600,
                 ),
               ),
             ],

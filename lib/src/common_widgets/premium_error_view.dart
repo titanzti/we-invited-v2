@@ -43,7 +43,7 @@ class PremiumErrorView extends StatelessWidget {
           Text(
             message,
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              color: Colors.grey.shade600,
+              color: AppTheme.grey600,
             ),
             textAlign: TextAlign.center,
           ),

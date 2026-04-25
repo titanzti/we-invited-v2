@@ -96,7 +96,7 @@ class _NotificationSettingsScreenState
                 onTap: () => context.pop(),
                 child: Container(
                   decoration: BoxDecoration(
-                    color: isDark ? AppTheme.darkSurface : Colors.grey.shade100,
+                    color: isDark ? AppTheme.darkSurface : AppTheme.grey100,
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
@@ -126,9 +126,9 @@ class _NotificationSettingsScreenState
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.error_outline, size: 48, color: Colors.grey.shade400),
+                    Icon(Icons.error_outline, size: 48, color: AppTheme.grey400),
                     const SizedBox(height: 12),
-                    Text(_error!, style: TextStyle(color: Colors.grey.shade600)),
+                    Text(_error!, style: TextStyle(color: AppTheme.grey600)),
                     const SizedBox(height: 12),
                     OutlinedButton(onPressed: _loadPrefs, child: const Text('Retry')),
                   ],
@@ -214,7 +214,7 @@ class _NotificationSettingsScreenState
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: isDark ? AppTheme.darkSurface : Colors.white,
+        color: isDark ? AppTheme.darkSurface : AppTheme.surfaceWhite,
         borderRadius: BorderRadius.circular(14),
         border: isDark ? Border.all(color: AppTheme.darkBorder) : null,
         boxShadow: isDark ? null : PremiumShadows.softCard,
@@ -233,7 +233,7 @@ class _NotificationSettingsScreenState
           child: Icon(icon, color: AppTheme.primaryBlue, size: 22),
         ),
         title: Text(title, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
-        subtitle: Text(subtitle, style: TextStyle(fontSize: 12, color: Colors.grey.shade500)),
+        subtitle: Text(subtitle, style: AppTheme.caption(isDark)),
       ),
     ).animate().fade().slideY(begin: 0.05);
   }

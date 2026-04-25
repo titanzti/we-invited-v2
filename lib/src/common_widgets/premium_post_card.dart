@@ -49,14 +49,14 @@ class PremiumPostCard extends StatelessWidget {
                 child: AspectRatio(
                   aspectRatio: 16 / 9,
                   child: post.image.isNotEmpty
-                      ? CachedNetworkImage(imageUrl: post.image, fit: BoxFit.cover, placeholder: (context, url) => Container(color: isDark ? AppTheme.darkSurface : AppTheme.borderLight), errorWidget: (context, url, error) => Container(color: isDark ? AppTheme.darkSurface : AppTheme.borderLight, child: const Icon(Icons.image_not_supported, color: Colors.grey)))
+                      ? CachedNetworkImage(imageUrl: post.image, fit: BoxFit.cover, placeholder: (context, url) => Container(color: isDark ? AppTheme.darkSurface : AppTheme.borderLight), errorWidget: (context, url, error) => Container(color: isDark ? AppTheme.darkSurface : AppTheme.borderLight, child: const Icon(Icons.image_not_supported, color: AppTheme.grey500)))
                       : Container(color: AppTheme.primaryBlue.withValues(alpha: 0.1), child: const Icon(Icons.event, size: 48, color: AppTheme.primaryBlue)),
                 ),
               ),
               if (dateLabel.isNotEmpty)
-                Positioned(top: 12, right: 12, child: Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6), decoration: BoxDecoration(color: Colors.black.withValues(alpha: 0.6), borderRadius: BorderRadius.circular(8)), child: Text(dateLabel, style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600)))),
+                Positioned(top: 12, right: 12, child: Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6), decoration: BoxDecoration(color: Colors.black.withValues(alpha: 0.6), borderRadius: BorderRadius.circular(8)), child: Text(dateLabel, style: const TextStyle(color: AppTheme.surfaceWhite, fontSize: 11, fontWeight: FontWeight.w600)))),
               if (post.requiresApproval)
-                Positioned(top: 12, left: 12, child: Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4), decoration: BoxDecoration(color: Colors.orange.shade700, borderRadius: BorderRadius.circular(8)), child: const Row(mainAxisSize: MainAxisSize.min, children: [Icon(Icons.verified_user, size: 12, color: Colors.white), SizedBox(width: 4), Text('Approval', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w600))]))),
+                Positioned(top: 12, left: 12, child: Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4), decoration: BoxDecoration(color: AppTheme.semanticOrangeDark, borderRadius: BorderRadius.circular(8)), child: const Row(mainAxisSize: MainAxisSize.min, children: [Icon(Icons.verified_user, size: 12, color: AppTheme.surfaceWhite), SizedBox(width: 4), Text('Approval', style: TextStyle(color: AppTheme.surfaceWhite, fontSize: 10, fontWeight: FontWeight.w600))]))),
             ]),
             Padding(
               padding: const EdgeInsets.all(16),
@@ -69,14 +69,14 @@ class PremiumPostCard extends StatelessWidget {
                 Hero(tag: 'post_title_${post.postid}', child: Text(post.name.isNotEmpty ? post.name : 'Untitled Event', style: Theme.of(context).textTheme.titleMedium, maxLines: 2, overflow: TextOverflow.ellipsis)),
                 const SizedBox(height: 8),
                 Row(children: [
-                  const Icon(Icons.location_on_outlined, size: 14, color: Colors.grey),
+                  const Icon(Icons.location_on_outlined, size: 14, color: AppTheme.grey500),
                   const SizedBox(width: 4),
-                  Expanded(child: Text(post.place.isNotEmpty ? post.place : 'Location TBD', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.grey.shade600, fontSize: 13), maxLines: 1, overflow: TextOverflow.ellipsis)),
+                  Expanded(child: Text(post.place.isNotEmpty ? post.place : 'Location TBD', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppTheme.grey600, fontSize: 13), maxLines: 1, overflow: TextOverflow.ellipsis)),
                   if (post.numpeople.isNotEmpty) ...[
                     const SizedBox(width: 12),
-                    Icon(Icons.people_outline, size: 14, color: Colors.grey.shade500),
+                    Icon(Icons.people_outline, size: 14, color: AppTheme.grey500),
                     const SizedBox(width: 4),
-                    Text(post.numpeople, style: TextStyle(fontSize: 13, color: Colors.grey.shade600)),
+                    Text(post.numpeople, style: TextStyle(fontSize: 13, color: AppTheme.grey600)),
                   ],
                 ]),
               ]),

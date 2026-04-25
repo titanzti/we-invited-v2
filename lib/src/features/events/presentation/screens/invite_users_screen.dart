@@ -104,7 +104,7 @@ class _InviteUsersScreenState extends ConsumerState<InviteUsersScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark ? AppTheme.darkBackground : Colors.white,
+      backgroundColor: isDark ? AppTheme.darkBackground : AppTheme.surfaceWhite,
       body: Stack(
         children: [
           CustomScrollView(
@@ -112,14 +112,14 @@ class _InviteUsersScreenState extends ConsumerState<InviteUsersScreen> {
             slivers: [
               SliverAppBar(
                 pinned: true,
-                backgroundColor: isDark ? AppTheme.darkBackground : Colors.white,
+                backgroundColor: isDark ? AppTheme.darkBackground : AppTheme.surfaceWhite,
                 leading: Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: GestureDetector(
                     onTap: () => context.pop(),
                     child: Container(
                       decoration: BoxDecoration(
-                        color: isDark ? AppTheme.darkSurface : Colors.grey.shade100,
+                        color: isDark ? AppTheme.darkSurface : AppTheme.grey100,
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
@@ -146,7 +146,7 @@ class _InviteUsersScreenState extends ConsumerState<InviteUsersScreen> {
                     widget.eventTitle,
                     style: TextStyle(
                       fontSize: 14,
-                      color: isDark ? AppTheme.darkTextSecondary : Colors.grey.shade600,
+                      color: isDark ? AppTheme.darkTextSecondary : AppTheme.grey600,
                     ),
                   ),
                 ),
@@ -162,7 +162,7 @@ class _InviteUsersScreenState extends ConsumerState<InviteUsersScreen> {
                       hintText: 'Search by name or email...',
                       prefixIcon: const Icon(Icons.search, size: 20),
                       filled: true,
-                      fillColor: isDark ? AppTheme.darkSurface : Colors.grey.shade100,
+                      fillColor: isDark ? AppTheme.darkSurface : AppTheme.grey100,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide: BorderSide.none,
@@ -186,9 +186,9 @@ class _InviteUsersScreenState extends ConsumerState<InviteUsersScreen> {
                     child: Center(
                       child: Column(
                         children: [
-                          Icon(Icons.error_outline, size: 48, color: Colors.grey.shade400),
+                          Icon(Icons.error_outline, size: 48, color: AppTheme.grey400),
                           const SizedBox(height: 12),
-                          Text(_searchError!, style: TextStyle(color: Colors.grey.shade600)),
+                          Text(_searchError!, style: TextStyle(color: AppTheme.grey600)),
                         ],
                       ),
                     ),
@@ -201,12 +201,12 @@ class _InviteUsersScreenState extends ConsumerState<InviteUsersScreen> {
                     child: Center(
                       child: Column(
                         children: [
-                          Icon(Icons.search_off, size: 56, color: Colors.grey.shade300),
+                          Icon(Icons.search_off, size: 56, color: AppTheme.grey300),
                           const SizedBox(height: 16),
                           Text(
                             'No users found',
                             style: TextStyle(
-                              color: Colors.grey.shade500,
+                              color: AppTheme.grey500,
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
                             ),
@@ -241,7 +241,7 @@ class _InviteUsersScreenState extends ConsumerState<InviteUsersScreen> {
                             margin: const EdgeInsets.only(bottom: 10),
                             padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
-                              color: isDark ? AppTheme.darkSurface : Colors.grey.shade50,
+                              color: isDark ? AppTheme.darkSurface : AppTheme.grey50,
                               borderRadius: BorderRadius.circular(12),
                               border: isSelected
                                   ? Border.all(color: AppTheme.primaryBlue, width: 2)
@@ -286,7 +286,7 @@ class _InviteUsersScreenState extends ConsumerState<InviteUsersScreen> {
                                           fontSize: 12,
                                           color: isDark
                                               ? AppTheme.darkTextSecondary
-                                              : Colors.grey.shade600,
+                                              : AppTheme.grey600,
                                         ),
                                       ),
                                     ],
@@ -306,11 +306,11 @@ class _InviteUsersScreenState extends ConsumerState<InviteUsersScreen> {
                                           ? AppTheme.primaryBlue
                                           : (isDark
                                               ? AppTheme.darkBorder
-                                              : Colors.grey.shade400),
+                                              : AppTheme.grey400),
                                     ),
                                   ),
                                   child: isSelected
-                                      ? const Icon(Icons.check, color: Colors.white, size: 16)
+                                      ? const Icon(Icons.check, color: AppTheme.surfaceWhite, size: 16)
                                       : null,
                                 ),
                               ],
@@ -332,7 +332,7 @@ class _InviteUsersScreenState extends ConsumerState<InviteUsersScreen> {
               child: Container(
                 padding: const EdgeInsets.fromLTRB(24, 16, 24, 40),
                 decoration: BoxDecoration(
-                  color: isDark ? AppTheme.darkBackground : Colors.white,
+                  color: isDark ? AppTheme.darkBackground : AppTheme.surfaceWhite,
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withValues(alpha: 0.05),

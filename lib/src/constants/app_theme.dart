@@ -22,6 +22,33 @@ class AppTheme {
   static const Color darkTextPrimary = Color(0xFFE8E6E3);
   static const Color darkTextSecondary = Color(0xFF9B9A97);
 
+  // Semantic colors
+  static const Color semanticRed = Color(0xFFEF4444);
+  static const Color semanticGreen = Color(0xFF22C55E);
+  static const Color semanticOrange = Color(0xFFF97316);
+  static const Color semanticOrangeDark = Color(0xFFC2410C);
+
+  // Common greys (Material approximations for consistency)
+  static const Color grey50 = Color(0xFFF9FAFB);
+  static const Color grey100 = Color(0xFFF3F4F6);
+  static const Color grey200 = Color(0xFFE5E7EB);
+  static const Color grey300 = Color(0xFFD4D4D8);
+  static const Color grey400 = Color(0xFFA1A1AA);
+  static const Color grey500 = Color(0xFF71717A);
+  static const Color grey600 = Color(0xFF52525B);
+  static const Color grey700 = Color(0xFF3F3F46);
+
+  // Overlays
+  static const Color overlayDark = Color(0x8A000000); // black54
+  static const Color overlayLight = Color(0x1FFFFFFF); // white12
+
+  // Typography helpers
+  static TextStyle caption(bool isDark) => TextStyle(fontSize: 12, color: isDark ? darkTextSecondary : grey500);
+  static TextStyle labelPrimary = const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: primaryBlue, letterSpacing: 0.5);
+  static TextStyle actionLabel = const TextStyle(color: primaryBlue, fontWeight: FontWeight.w600, fontSize: 14);
+  static TextStyle bodySmall(bool isDark) => TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: isDark ? darkTextPrimary : textBody);
+  static TextStyle mutedText(bool isDark) => TextStyle(fontSize: 13, color: isDark ? darkTextSecondary : grey500);
+
   // Notion Typography (Inter with specific tracking)
   static TextTheme _premiumTextTheme({bool isDark = false}) {
     final primary = isDark ? darkTextPrimary : primaryDark;

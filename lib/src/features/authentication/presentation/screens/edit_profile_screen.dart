@@ -145,9 +145,9 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                       decoration: BoxDecoration(
                         color: AppTheme.primaryBlue,
                         shape: BoxShape.circle,
-                        border: Border.all(color: isDark ? AppTheme.darkBackground : Colors.white, width: 2),
+                        border: Border.all(color: isDark ? AppTheme.darkBackground : AppTheme.surfaceWhite, width: 2),
                       ),
-                      child: const Icon(Icons.camera_alt, color: Colors.white, size: 16),
+                      child: const Icon(Icons.camera_alt, color: AppTheme.surfaceWhite, size: 16),
                     ),
                   ),
                 ],
@@ -225,7 +225,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   Widget _buildField({required bool isDark, required Widget child}) {
     return Container(
       decoration: BoxDecoration(
-        color: isDark ? AppTheme.darkSurface : Colors.white,
+        color: isDark ? AppTheme.darkSurface : AppTheme.surfaceWhite,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: isDark ? AppTheme.darkBorder : AppTheme.borderLight),
         boxShadow: isDark ? null : PremiumShadows.softCard,
